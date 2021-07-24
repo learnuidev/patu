@@ -1,0 +1,7 @@
+node_modules
+.shadow-cljs
+public/js/
+.lsp
+.clj-kondo
+
+.DS_Store
