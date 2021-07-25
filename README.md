@@ -10,9 +10,7 @@ It is built on top of Kaboom.js
 
 ## Usage
 
-
 A Flappy bird tutorial
-
 
 
 
