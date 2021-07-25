@@ -2,9 +2,7 @@
 
 patu is a ClojureScript library that helps you make games fast and fun!
 
-
 <img width="766" alt="Screen Shot 2021-07-24 at 3 34 13 PM" src="https://user-images.githubusercontent.com/43140948/126879382-1759a63d-5312-46f3-8497-f6807f0ab20b.png">
-
 
 It is built on top of Kaboom.js
 
@@ -12,23 +10,18 @@ It is built on top of Kaboom.js
 
 A Flappy bird tutorial
 
-
-
 https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-aea7-14982c805137.mov
-
-
 
 ```clj
 (ns app.kaboom-examples.flappy
   (:require
    [clojure.repl :refer [doc]]
    ;; Main Libs (5) ===
-   [app.kaboom.patu.core :as p]
-   [app.kaboom.patu.loaders :as l]                         ;; Loaders
-   [app.kaboom.patu.audio :as a]                           ;; Audio
-   [app.kaboom.patu.components :as c]                      ;; Component Helpers
-   [app.kaboom.patu.events :refer [reg-event dispatch]]    ;; Event System))
-   ["/kaboom.js" :default k]))
+   [app.patu.core :as p]                            ;; Core
+   [app.patu.loaders :as l]                         ;; Loaders
+   [app.patu.audio :as a]                           ;; Audio
+   [app.patu.components :as c]                      ;; Component Helpers
+   [app.patu.events :refer [reg-event dispatch]]))  ;; Event System))
 
 ;; 0 Constants
 (def pipe-open  80);
