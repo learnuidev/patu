@@ -1,13 +1,13 @@
-(ns app.kaboom-examples.flappy
+(ns app.examples.flappy
   (:require
    [clojure.repl :refer [doc]]
    ;; Main Libs (5) ===
-   [app.kaboom.patu.core :as p]
-   [app.kaboom.patu.loaders :as l]                         ;; Loaders
-   [app.kaboom.patu.audio :as a]                           ;; Audio
-   [app.kaboom.patu.components :as c]                      ;; Component Helpers
-   [app.kaboom.patu.events :refer [reg-event dispatch]]    ;; Event System))
-   ["/kaboom.js" :default k]))
+   [app.patu.core :as p]
+   [app.patu.loaders :as l]                         ;; Loaders
+   [app.patu.audio :as a]                           ;; Audio
+   [app.patu.components :as c]                      ;; Component Helpers
+   [app.patu.events :refer [reg-event dispatch]]))    ;; Event System))
+
 
 ;; 0 Constants
 (def pipe-open  80);
@@ -19,7 +19,7 @@
 ;; 1 Game Init
 (p/init {:canvas (js/document.getElementById "app")
          :global true
-         :scale 2
+         :scale 1
          :debug true
          :clearColor [0 0 0 1]})
 

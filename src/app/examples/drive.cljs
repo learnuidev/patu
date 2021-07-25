@@ -1,15 +1,15 @@
-(ns app.kaboom-examples.drive
+(ns app.examples.drive
   (:require
    [clojure.repl :refer [doc]]
    ;; Main Libs ===
-   [app.kaboom.patu.core :as p]
-   [app.kaboom.patu.loaders :as l]
-   [app.kaboom.patu.cam :as cam]
-   [app.kaboom.patu.audio :as a]
-   [app.kaboom.patu.utils :refer [js-set! js-get]]
-   [app.kaboom.patu.components :as c]
+   [app.patu.core :as p]
+   [app.patu.loaders :as l]
+   [app.patu.cam :as cam]
+   [app.patu.audio :as a]
+   [app.patu.utils :refer [js-set! js-get]]
+   [app.patu.components :as c]
    ;; Event System
-   [app.kaboom.patu.events :refer [reg-event dispatch]]))
+   [app.patu.events :refer [reg-event dispatch]]))
 
 (p/init {:canvas (js/document.getElementById "app")
          :global true
