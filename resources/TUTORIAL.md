@@ -76,7 +76,7 @@ It contains single function called `play`. It accepts audio id and plays the aud
 
 This namespace contains helper functions for components.
 
-### 5. app.patu.events (re-frame)
+### 5. app.patu.events (re-frame syntax)
 
 This namespace exposes two functions reg-event and dispatch
 
