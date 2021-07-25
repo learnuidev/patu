@@ -6,6 +6,14 @@ It is built on top of Kaboom.js
 
 ## Usage
 
+A Flappy bird tutorial
+
+
+
+https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-aea7-14982c805137.mov
+
+
+
 ```clj
 (ns app.kaboom-examples.flappy
   (:require
