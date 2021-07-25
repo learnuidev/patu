@@ -1,4 +1,7 @@
+# Patu
+
 patu is a ClojureScript library that helps you make games fast and fun!
+
 <img width="766" alt="Screen Shot 2021-07-24 at 3 34 13 PM" src="https://user-images.githubusercontent.com/43140948/126879382-1759a63d-5312-46f3-8497-f6807f0ab20b.png">
 
 
