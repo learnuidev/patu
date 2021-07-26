@@ -138,10 +138,7 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
               :evt main-action})
 
 ;; 4. B Lose Scene ===
-(defn lose-init []
-  [[:evt/key-press :space #(p/go :scene/main)]])
-
-(defn lose-action [score]
+(defn lose-init [score]
   (let [[x y] (p/center)]
     [[:comp/reg-n
       [:ui/score-board [[:text score 64]
@@ -151,6 +148,9 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
                         [:pos x (+ y 50)]
                         [:origin :center]]]]]))
 
+(defn lose-action []
+  [[:evt/key-press :space #(p/go :scene/main)]])
+  
 (p/reg-scene :scene/lose
              {:init lose-init
               :evt lose-action})
