@@ -55,12 +55,15 @@
 (defn key-press [game id handler]
   (.keyPress game (name id) handler))
 
+(defn key-press-rep [game id handler]
+  (.keyPressRep game (name id) handler))
+
 (defn key-release [game id handler]
   (if (vector? id)
     (.keyRelease game (clj->js id) handler)
     (.keyRelease game (name id) handler)))
 
-(defn key-is-down [game key]
+(defn key-down? [game key]
   (.keyIsDown game (name key)))
 
 ;; ===

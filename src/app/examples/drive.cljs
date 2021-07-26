@@ -15,6 +15,7 @@
          :global true
          :width 160
          :height 120
+         ; :fullscreen true
          :scale 4
          :debug true
          :clearColor [0 0 0 1]})

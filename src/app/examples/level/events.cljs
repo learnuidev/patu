@@ -53,7 +53,7 @@
  :player/idle
  (fn [_ [_ pid]]
    (let [player (p/get-component pid)]
-     (when (and (not (p/key-is-down :right)) (not (p/key-is-down :right)))
+     (when (and (not (p/key-down? :right)) (not (p/key-down? :right)))
        (c/play player :idle)))))
 
 (reg-event

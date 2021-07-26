@@ -8,17 +8,62 @@
             [app.patu.state :refer [game-state]]
             ["/kaboom.js" :default kaboom!]))
 
+;; === ***math** ===
+(defn vec2
+  [[val val2]]
+  (lib/vec2 (:game @game-state) val (or val2 val)))
+
+(defn rgb
+  ([r g b] (rgb r g b 1))
+  ([r g b a]
+   (.rgb (:game @game-state) r g b a)))
+
+(defn rgba [r g b a]
+  (.rgba (:game @game-state) r g b a))
+
+(defn rand-seed [val]
+  (.randSeed (:game @game-state) val))
+
+(defn make-rng
+  "create a seedable random number generator
+  usage: (make-rng (js/Date.now))
+  "
+  [val]
+  (.makeRng (:game @game-state) val))
+
+(defn choose
+  "Get random element from array"
+  [coll]
+  (.choose (:game @game-state) coll))
+
+(defn chance
+  [num]
+  (.chance (:game @game-state) num))
+
+(defn lerp
+  "Linear interpolation"
+  [frm to t]
+  (.lerp (:game @game-state) frm to t))
+
+(defn pmap
+  "map number to another range"
+  [v l1 h1 l2 h2]
+  (.map (:game @game-state) v l1 h1 l2 h2))
+
 (comment
   (js/console.log kabooom))
 (comment
   (js-get #js {:foo "bar"} :foo "Not found")
   (js-get #js {:foo "bar"} :dne "Not found"))
+
 (declare dispatch-n)
 ;;
 
 (defn kaboom [config]
   (kaboom! (clj->js config)))
-(js/console.log kaboom)
+
+(comment
+  (js/console.log kaboom))
 
 (defn init
   "Initializes a new game:
@@ -31,6 +76,23 @@
              :clearColor [0,0,0, 0.9]}))
   ([props]
    (swap! game-state assoc :game (kaboom props))))
+
+;; Query =
+(defn dt []
+  (.dt (:game @game-state)))
+
+(defn height []
+  (.height (:game @game-state)))
+
+(defn width []
+  (.width (:game @game-state)))
+
+(defn mouse-pos
+  ([] (.mousePos (:game @game-state)))
+  ([layer] (.mousePos (:game @game-state) (name layer))))
+
+(defn screenshot
+  [] (.screenShot (:game @game-state)))
 
 (defn go
   ([id] (lib/go (:game @game-state) id))
@@ -71,19 +133,9 @@
 
 (comment
   (:game/levels @game-state))
-(defn key-is-down [key]
-  (.keyIsDown (:game @game-state) (name key)))
 
 (defn add [game comps]
   (.add game (clj->js comps)))
-
-;; Key events
-(defn mouse-clicked? []
-  (.mouseIsClicked (:game @game-state)))
-(defn mouse-down? []
-  (.mouseIsDown (:game @game-state)))
-(defn mouse-released? []
-  (.mouseIsReleased (:game @game-state)))
 
 (defn scene [game id handler]
   (.scene game (name id) handler))
@@ -105,20 +157,11 @@
     - example usage: (start :scene/main)"
   [id]
   (start! (:game @game-state) id))
-;;
-
-
-(defn vec2
-  [[val val2]]
-  (lib/vec2 (:game @game-state) val (or val2 val)))
 
 (defn respawn [comp val]
   (if (number? val)
     (set! comp -pos (vec2 [val val]))
     (set! comp -pos (vec2 val))))
-
-(defn dt []
-  (.dt (:game @game-state)))
 
 (defn gravity [game value]
   (.gravity game value))
@@ -185,10 +228,9 @@
       comp
       (get-tag id))))
 
-(defn rgb
-  ([r g b] (rgb r g b 1))
-  ([r g b a]
-   (.rgb (:game @game-state) r g b a)))
+;; Colors
+
+
 (defn get-level [id]
   (get-in @game-state [:game/levels id]))
 (defmulti create-component (fn [_ type props] type))
@@ -240,14 +282,8 @@
 (defmethod create-component :area [game _ [_ x1 y1 x2 y2]]
   (.area game (.vec2 game x1 y1) (.vec2 game x2 y2)))
 
-; (defmethod create-component :tag [game _ val]
-;   val)
-
-
 (comment
   (create-component game :sprite [:sprite :mario]))
-;
-;; [[:sprite :mario] [:solid] [:pos 30 0] [:body] [:origin "bot"]]
 (defn create-components [game props]
   (clj->js (for [prop props]
              (create-component game (nth prop 0) prop))))
@@ -287,11 +323,6 @@
   (let [comp  (add-component (:game @game-state) props)]
     (swap! game-state assoc-in [:components id] {:comp comp :props props})
     comp))
-
-(defn height []
-  (.height (:game @game-state)))
-(defn width []
-  (.width (:game @game-state)))
 
 (defn destroy! [game comp]
   (.destroy game comp))
@@ -348,7 +379,7 @@
   (doseq [[id props] comps]
     (reg-component id props)))
 
-;;
+;; ==== Dispatch Events ====
 (defn action-handler [comp props]
   (if (vector? props)
     (.action comp (fn []
@@ -364,6 +395,7 @@
                                   ((second prop))))))]
     (c/on comp key handler)))
 
+;;
 (defmethod dispatch :evt/comp [[_ [id & args]]]
   (let [comp (get-component id)]
     (doseq [[method res] args]
@@ -371,43 +403,94 @@
         :action (action-handler comp res)
         :on     (on-handler comp res)))))
 
+;; Key Events
 (defmethod dispatch :evt/key-down [[_ id handler]]
   (evt/key-down id handler))
 
 (defmethod dispatch :evt/key-press [[_ id handler]]
   (evt/key-press id handler))
+
+(defmethod dispatch :evt/key-press-rep [[_ id handler]]
+  (evt/key-press-rep id handler))
+
 (defmethod dispatch :evt/key-release [[_ id handler]]
   (evt/key-release id handler))
 
+;; Char
+(defmethod dispatch :evt/char-input [[_ handler]]
+  (.charInput (:game @game-state) handler))
+
+;; Mouse
+(defmethod dispatch :evt/mouse-down [[_ handler]]
+  (.mouseDown (:game @game-state) handler))
+
+(defmethod dispatch :evt/mouse-click [[_ handler]]
+  (.mouseClick (:game @game-state) handler))
+
+(defmethod dispatch :evt/mouse-release [[_ handler]]
+  (.mouseRelease (:game @game-state) handler))
+
+;; Key Boolean Events
+(defn key-down? [id]
+  (evt/key-down? id))
+
+(defn key-pressed? [k]
+  (.keyIsPressed (:game @game-state) (name k)))
+(defn key-pressed-rep? [k]
+  (.keyIsPressedRep (:game @game-state) (name k)))
+
+(defn key-released? [k]
+  (.keyReleased (:game @game-state) (name k)))
+
+;; Mouse Boolean Events
+(defn mouse-clicked? []
+  (.mouseIsClicked (:game @game-state)))
+
+(defn mouse-down? []
+  (.mouseIsDown (:game @game-state)))
+
+(defn mouse-released? []
+  (.mouseIsReleased (:game @game-state)))
+
+;; Game Events ===
+
+;; 1. Action
 (defmethod dispatch :evt/action [[_ id handler]]
   (when-let [comp (get-component id)]
     (if (.-action comp)
       (.action comp handler)
       (.action (:game @game-state) (name id) handler))))
-    ; (.action (:game @game-state) (name id) handler)))
 
-(defmethod dispatch :evt/on [[_ [id target] handler]]
-  (let [comp (or (get-component id) id)]
-    (.on comp (name target) #(handler %))))
-
+;; 2. Render
+(defmethod dispatch :evt/render [[_ id handler]]
+  (.render (:game @game-state) (name id) handler))
+;; 3. Collides
 (defmethod dispatch :evt/collides [[_ [id target] handler]]
   (let [comp (get-component id)]
     (if (.-collides comp)
       (.collides comp (name target) handler)
       (.collides (:game @game-state) (name id) (name target) handler))))
-
+;; 4. Overlaps
 (defmethod dispatch :evt/overlaps [[_ [id target] handler]]
   (let [comp (get-component id)]
     (.overlaps comp (name target) handler)))
+;; 5 on
+(defmethod dispatch :evt/on [[_ [id target] handler]]
+  (let [comp (or (get-component id) id)]
+    (.on comp (name target) #(handler %))))
+
+;; Waiting Functions
+(defmethod dispatch :game/loop [[_ id func]]
+  (.loop (:game @game-state) id func))
+
+(defmethod dispatch :game/wait [[_ id func]]
+  (.wait (:game @game-state) id func))
+
+;; Component Specific ===
+
 (defmethod dispatch :comp/play [[_ id tune]]
   (let [comp (get-component id)]
     (.play comp (name tune))))
-
-(defn game-loop [val func]
-  (.loop (:game @game-state) val func))
-
-(defmethod dispatch :game/loop [[_ id func]]
-  (game-loop id func))
 
 (defmethod dispatch :component/add [[_ nodes]]
   (add-component! nodes))

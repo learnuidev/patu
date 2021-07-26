@@ -9,7 +9,7 @@
    [app.patu.components :as c]
    [app.patu.utils :refer [js-get]]
    ;; Event System
-   [app.patu.events :refer [dispatch reg-event key-is-down]]
+   [app.patu.events :refer [dispatch reg-event]]
    ;; Assets
    [app.examples.metro.assets :refer [main-map level-handler level-two-handler]]))
 

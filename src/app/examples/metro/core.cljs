@@ -9,7 +9,7 @@
    [app.patu.components :as c]
    [app.patu.utils :refer [js-get]]
    ;; Event System
-   [app.patu.events :refer [dispatch reg-event key-is-down]]
+   [app.patu.events :refer [dispatch reg-event key-down?]]
    ;; ======= Game =======
    ;; 1. Assets
    [app.examples.metro.assets :refer [main-map level-handler level-two-handler]]
@@ -27,7 +27,7 @@
 ;; Step 1: Initialize Game
 (p/init {:canvas (js/document.getElementById "app")
          :fullscreen true
-         :scale 1
+         :scale 2
          :debug true
          :clearColor [0 0 0 1]})
 ;; Load Assets
