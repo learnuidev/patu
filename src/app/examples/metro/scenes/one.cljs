@@ -9,7 +9,7 @@
    [app.patu.components :as c]
    [app.patu.utils :refer [js-get]]
    ;; Event System
-   [app.patu.events :refer [dispatch reg-event key-is-down]]
+   [app.patu.events :refer [dispatch reg-event key-down?]]
    ;; Assets
    [app.examples.metro.assets :refer [main-map level-handler level-two-handler]]))
 
@@ -127,7 +127,7 @@
 (reg-event
  :player/zoom
  (fn [_ [_ player]]
-   (let [diff (if (key-is-down :left) -800 400)]
+   (let [diff (if (key-down? :left) -800 400)]
      (when (not (c/grounded? player))
        (when (= (.-dir player) "left")
          (.move player (.scale (p/vec2 [-1 0]) (+ diff (.-speed player)))))
@@ -138,7 +138,7 @@
 (reg-event
  :player/idle
  (fn [_ [_ player]]
-   (when (or  (not (key-is-down [:left :right :x]))
+   (when (or  (not (key-down? [:left :right :x]))
               (not (c/cur-anim? player :player/attack))
               (not (c/cur-anim? player :run))
               (not (c/cur-anim? player :nod)))

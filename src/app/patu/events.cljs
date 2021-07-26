@@ -24,13 +24,16 @@
 (defn key-press [id handler]
   (lib/key-press (:game @game-state) id handler))
 
+(defn key-press-rep [id handler]
+  (lib/key-press-rep (:game @game-state) id handler))
+
 (defn key-release [id handler]
   (lib/key-release (:game @game-state) id handler))
 
-(defn key-is-down [key]
+(defn key-down? [key]
   (if (vector? key)
-    (some (partial lib/key-is-down (:game @game-state)) key)
-    (lib/key-is-down (:game @game-state) key)))
+    (some (partial lib/key-down? (:game @game-state)) key)
+    (lib/key-down? (:game @game-state) key)))
 
 (comment
   (some even? [1 4 6]))
