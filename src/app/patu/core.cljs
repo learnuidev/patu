@@ -94,12 +94,6 @@
 (defn screenshot
   [] (.screenShot (:game @game-state)))
 
-(defn go
-  ([id] (lib/go (:game @game-state) id))
-  ([id props] (lib/go (:game @game-state) id props)))
-;; Load Sprites
-
-
 (defn sprite
   ([game title] (.sprite game (name title)))
   ([game title opts] (.sprite game (name title) (clj->js opts))))
@@ -134,21 +128,25 @@
 (comment
   (:game/levels @game-state))
 
-(defn add [game comps]
-  (.add game (clj->js comps)))
+;;; Scene
+(defn go
+  "switch to a scene"
+  ([id] (lib/go (:game @game-state) id))
+  ([id props] (lib/go (:game @game-state) id props)))
 
-(defn scene [game id handler]
+(defn scene
+  "Use scenes to define different parts of a game, e.g. Game Scene, Start Scene,"
+  [game id handler]
   (.scene game (name id) handler))
 
-#_(defn add-scene! [id handler]
-    (scene (:game @game-state) id handler))
-;;
-(defn reg-scene [id {:keys [init evt]}]
-  (let [handler (fn [state]
-                  (dispatch-n (init state))
-                  (dispatch-n (evt state)))]
+(defn reg-scene
+  "Registers a scene"
+  [id {:keys [init evt]}
+   (let [handler (fn [state]
+                   (dispatch-n (init state))
+                   (dispatch-n (evt state)))]
 
-    (scene (:game @game-state) id handler)))
+     (scene (:game @game-state) id handler))])
 (defn start! [game scene-id]
   (.start game (name scene-id)))
 
@@ -177,7 +175,10 @@
 
 (defn cam-ignore! [value]
   (cam-ignore (:game @game-state) value))
-;;
+
+;; Components
+(defn add [game comps]
+  (.add game (clj->js comps)))
 
 (defn get-component! [state id]
   (get-in state [:components id :comp]))
