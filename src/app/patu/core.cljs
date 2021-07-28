@@ -45,10 +45,25 @@
   [frm to t]
   (.lerp (:game @game-state) frm to t))
 
-(defn pmap
-  "map number to another range"
+; (defn- pmap
+;   "map number to another range"
+;   [v l1 h1 l2 h2]
+;   (.map (:game @game-state) v l1 h1 l2 h2))
+;
+; (defn- pmap
+;   "map number to another range"
+;   [v l1 h1 l2 h2]
+;   (+ l2
+;      (* (/ (- v l1) (- h1 l1))
+;         (- h2 l2))))
+
+(defn kmap
+  "map number to another range. Same as kaboom.map"
   [v l1 h1 l2 h2]
-  (.map (:game @game-state) v l1 h1 l2 h2))
+  (-> (- v l1)
+      (/ (- h1 l1))
+      (* (- h2 l2))
+      (+ l2)))
 
 (comment
   (js/console.log kabooom))
