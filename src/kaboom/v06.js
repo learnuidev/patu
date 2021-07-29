@@ -3022,13 +3022,17 @@ const kaboom = (
   }
 
   // input callbacks
-  function keyDown(k, f) {
+  function keyDownPvt(k, f) {
     if (Array.isArray(k)) {
       const cancellers = k.map(key => keyDown(key, f));
       return () => cancellers.forEach(cb => cb());
     } else {
       return game.on("input", () => app.keyDown(k) && f());
     }
+  }
+
+  function keyDown(id, cb) {
+    return keyDownPvt(id, cb.bind(null, state.components));
   }
 
   function keyPress(k, f) {
