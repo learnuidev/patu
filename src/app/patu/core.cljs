@@ -6,7 +6,7 @@
             [goog.object :as obj]
             [app.patu.cam :as cam]
             [app.patu.state :refer [game-state]]
-            ["/kaboom.js" :default kaboom!]))
+            ["/kaboom/v05.js" :default kaboom05]))
 
 ;; === ***math** ===
 (defn vec2
@@ -75,7 +75,7 @@
 ;;
 
 (defn kaboom [config]
-  (kaboom! (clj->js config)))
+  (kaboom05 (clj->js config)))
 
 (comment
   (js/console.log kaboom))
@@ -156,12 +156,12 @@
 
 (defn reg-scene
   "Registers a scene"
-  [id {:keys [init evt]}
-   (let [handler (fn [state]
-                   (dispatch-n (init state))
-                   (dispatch-n (evt state)))]
+  [id {:keys [init evt]}]
+  (let [handler (fn [state]
+                  (dispatch-n (init state))
+                  (dispatch-n (evt state)))]
 
-     (scene (:game @game-state) id handler))])
+    (scene (:game @game-state) id handler)))
 (defn start! [game scene-id]
   (.start game (name scene-id)))
 
