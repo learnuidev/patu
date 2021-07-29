@@ -1,4 +1,4 @@
-(ns patu.examples
+(ns patu.examples.core
   (:require
    #_[patu.examples.level.core :refer [app]]
    #_[patu.examples.mario.core :refer [app]]

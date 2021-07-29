@@ -8,9 +8,5 @@
   "scripts": {
     "start": "npx shadow-cljs watch app"
   },
-  "dependencies": {
-    "matter-js": "^0.17.1",
-    "react": "16.13.0",
-    "react-dom": "16.13.0"
-  }
+  "dependencies": {}
 }
