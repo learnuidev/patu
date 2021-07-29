@@ -11,7 +11,7 @@ IDList.prototype.push = function(v) {
 };
 
 IDList.prototype.pushd = function(v) {
-  const id = this.map.push(v);
+  const id = this.push(v);
   return () => this.delete(id);
 };
 
@@ -20,6 +20,13 @@ IDList.prototype.set = function(id, value) {
 };
 IDList.prototype.get = function(id) {
   return this.map.get(id);
+};
+
+IDList.prototype.forEach = function(cb) {
+  return this.map.forEach(cb);
+};
+IDList.prototype.values = function() {
+  return this.map.values();
 };
 function deg2rad(deg) {
   return (deg * Math.PI) / 180;
@@ -3122,9 +3129,7 @@ const kaboom = (
   // TODO: cache sorted list
   // get all objects with tag
   function get(t) {
-    const temp =
-      game && game.objs && game.objs.values ? [...game.objs.values()] : [];
-    const objs = [...temp].sort((o1, o2) => {
+    const objs = [...game.objs.values()].sort((o1, o2) => {
       const l1 =
         game.layers[o1.layer ? o1.layer : game.defLayer] &&
         game.layers[o1.layer ? o1.layer : game.defLayer].order
@@ -3202,15 +3207,13 @@ const kaboom = (
 
     if (doUpdate) {
       // update timers
-      game.timers &&
-        game.timers.forEach &&
-        game.timers.forEach((t, id) => {
-          t.time -= dt();
-          if (t.time <= 0) {
-            t.cb();
-            game.timers.delete(id);
-          }
-        });
+      game.timers.forEach((t, id) => {
+        t.time -= dt();
+        if (t.time <= 0) {
+          t.cb();
+          game.timers.delete(id);
+        }
+      });
     }
 
     // update every obj
@@ -3221,7 +3224,7 @@ const kaboom = (
     });
 
     if (doUpdate) {
-      game.actions && game.actions.forEach && game.actions.forEach(a => a());
+      game.actions.forEach(a => a());
     }
 
     // calculate camera matrix
@@ -3256,7 +3259,7 @@ const kaboom = (
       }
     });
 
-    game.renders && game.renders.forEach && game.renders.forEach(r => r());
+    game.renders.forEach(r => r());
   }
 
   function drawInspect() {
