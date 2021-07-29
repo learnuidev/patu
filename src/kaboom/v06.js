@@ -2436,36 +2436,73 @@ const kaboom = (
     components: {}
   };
   const reg_comp = (id, comps) => {
-    let firstComp = comps[0];
-    if (Array.isArray(firstComp)) {
-      let calculatedComps = comps.map(comp => {
+    if (comps) {
+      let firstComp = comps[0];
+      if (Array.isArray(firstComp)) {
+        let calculatedComps = comps.map(comp => {
+          if (!Array.isArray(comp)) {
+            return comp;
+          }
+          const [key, prop, propB] = comp;
+          switch (key) {
+            case "sprite":
+              return sprite(prop);
+            case "pos":
+              return pos(prop[0], prop[1]);
+            case "scale":
+              return scale(prop);
+            case "text":
+              return text(prop, propB);
+            case "body":
+              return body();
+            case "solid":
+              return solid();
+            default:
+              return {};
+          }
+        });
+
+        state.components[id] = add(calculatedComps);
+      } else {
+        const comp = add(comps);
+        state.components[id] = comp;
+      }
+    } else {
+      let calculatedComps = id.map(comp => {
         if (!Array.isArray(comp)) {
           return comp;
-        }
-        const [key, prop, propB] = comp;
-        switch (key) {
-          case "sprite":
-            return sprite(prop);
-          case "pos":
-            return pos(prop[0], prop[1]);
-          case "scale":
-            return scale(prop);
-          case "text":
-            return text(prop, propB);
-          default:
-            return {};
+        } else {
+          const [key, prop, propB] = comp;
+          switch (key) {
+            case "sprite":
+              return sprite(prop);
+            case "pos":
+              return pos(prop[0], prop[1]);
+            case "scale":
+              return scale(prop);
+            case "text":
+              return text(prop, propB);
+            default:
+              return {};
+          }
         }
       });
 
-      state.components[id] = add(calculatedComps);
-    } else {
-      const comp = add(comps);
-      state.components[id] = comp;
+      console.log("calculatedComps", calculatedComps);
+
+      return add(calculatedComps);
     }
   };
 
   // window.reg_comp = reg_comp;
-  const get_comp = (id, defaultVal) => state.components[id] || defaultVal;
+  function get_comp(id, defaultVal) {
+    var val = state.components[id];
+    if (val) {
+      return val;
+    }
+
+    return get(id);
+  }
 
   // CUSTOM CODE ===
 

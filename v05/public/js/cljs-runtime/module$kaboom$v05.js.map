@@ -1,0 +1,9 @@
+{
+"version":3,
+"file":"module$kaboom$v05.js",
+"lineCount":10,
+"mappings":"AAGA,cAAA,IAAMA,4BAASA,QAAA,CAAAC,MAAA,CAAU;AACvB,MAAIA,MAAJ;AACE,WAAOC,MAAAF,OAAA,CAAcC,MAAd,CAAP;AADF;AAIA,SAAOC,MAAAF,OAAA,EAAP;AALuB,CAAzB;AAUA,IAAAG,0CAAeH,yBAAf;AAVA,cAAA,IAAAI,oBAAA,EAAA;AAUA,cAAA,iBAAA,QAAA,GAAA,uCAAA;;",
+"sources":["kaboom/v05.js"],
+"sourcesContent":["// import kavoomLib from \"./lib/kaboom\";\n\n// window.kavoomLib = kavoomLib;\nconst kaboom = config => {\n  if (config) {\n    return window.kaboom(config);\n    // return kavoomLib(config);\n  }\n  return window.kaboom();\n\n  // return window.goog.math.clamp(1, 2, 3);\n};\n\nexport default kaboom;\n"],
+"names":["kaboom","config","window","$jscompDefaultExport","$jscomp$tmp$exports$module$name"]
+}
