@@ -9,7 +9,7 @@
                 ; [applied-science/js-interop "0.2.11"]]
 
  :builds       {:app {:target :browser
-                      :modules {:main {:init-fn app.core/init}}
+                      :modules {:main {:init-fn patu.examples/init}}
                       :output-dir "public/js"
                       :asset-path "/js"
                       :compiler-options {:output-feature :es-next}}}}
