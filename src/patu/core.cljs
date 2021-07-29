@@ -1,4 +1,4 @@
-(ns app.examples.patuv06.core
+(ns patu.core
   (:require  ["/kaboom/v06.js" :as kaboom6]))
 
 ;; == 1. State
