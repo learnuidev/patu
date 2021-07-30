@@ -2489,6 +2489,8 @@ const kaboom = (
               return scale(prop);
             case "text":
               return text(prop, propB);
+            case "origin":
+              return origin(prop);
             default:
               return {};
           }

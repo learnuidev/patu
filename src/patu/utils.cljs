@@ -22,15 +22,16 @@
       (jget obj f))))
 
 (comment
-  (get (jget #js {:foo {:bar 2}} :foo) :bar)
-  (jget-in #js {:foo {:bar 2}} [:foo :bar]))
+  (jget-in (clj->js {:foo {:bar 2}}) [:foo :bar])
+  (jget-in (clj->js {:foo {:bar 2}}) '(:foo :bar)))
 (def objs #js {:foo {:bar 1}})
 (obj/get objs "foo" "bar")
 
 (defn jset!
   ""
   ([obj key value]
-   (obj/set obj (name key) (clj->js value))))
+   (obj/set obj (name key) (clj->js value))
+   obj))
 
 ;;
 (defn jset-in
