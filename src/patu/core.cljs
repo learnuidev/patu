@@ -1,12 +1,32 @@
 (ns patu.core
   (:require  ["/kaboom.js" :as kaboom6]
-             [patu.events :refer [dispatch reg-event]]
+             [patu.events :refer [dispatch reg-event dispatch-n]]
              [patu.state :refer [state]]))
 
+;; Dimensions
+(defn height []
+  (.height (:k @state)))
+
+(comment
+  (height))
+(defn width []
+  (.width (:k @state)))
+
+(defn randd [v1 v2]
+  (.rand (:k @state) v1 v2))
+
+;; === Scene API
+(defn go
+  ([id]
+   (.go (:k @state) (name id)))
+  ([id opts]
+   (.go (:k @state) (name id) (clj->js opts))))
 ;; == 1. Component API
 (defn reg-comp
   ([data]
-   (.reg_comp (:k @state) (clj->js data)))
+   (if (keyword? (nth data 0))
+     (.reg_comp (:k @state) (name (nth data 0)) (clj->js (nth data 1)))
+     (.reg_comp (:k @state) (clj->js data))))
   ([id data]
    (.reg_comp (:k @state) (name id) (clj->js data))))
 
@@ -74,6 +94,11 @@
    (.keyPress (:k @state) (name id) handler)))
 
 (reg-event
+ :loop
+ (fn [_ [_ time handler]]
+   (.loop (:k @state) time handler)))
+
+(reg-event
  :comp/reg
  (fn [_ [_ & args]]
    (apply reg-comp args)))
@@ -82,6 +107,20 @@
  :comp/reg-n
  (fn [_ [_ datas]]
    (reg-comp-n datas)))
+
+;; === Scene API
+(defn scene
+  "Use scenes to define different parts of a game, e.g. Game Scene, Start Scene,"
+  [game id handler]
+  (.scene game (name id) handler))
+
+(defn reg-scene
+  "Registers a scene"
+  [id {:keys [init evt]}]
+  (let [handler (fn [state]
+                  (dispatch-n (init state))
+                  (dispatch-n (evt state)))]
+    (scene (:k @state) id handler)))
 
 ;; ==== Core
 (defn kaboom

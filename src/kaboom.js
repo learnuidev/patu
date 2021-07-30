@@ -28,6 +28,9 @@ IDList.prototype.forEach = function(cb) {
 IDList.prototype.values = function() {
   return this.map.values();
 };
+IDList.prototype.delete = function(id) {
+  return this.map.delete(id);
+};
 function deg2rad(deg) {
   return (deg * Math.PI) / 180;
 }
