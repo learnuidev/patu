@@ -18,13 +18,9 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
 
 ```clj
 (ns patu.examples.flappy
-  (:require [patu.core :as p]
-            [patu.loaders :as l]
-            [patu.audio :as a]
-            [patu.components :as c]
-            [patu.subs :refer [sub reg-sub]]
-            [patu.events :refer [reg-event dispatch dispatch-n]]
-            [patu.utils :refer [jset-in! jset!]]))
+  (:require [patu.core :as p] ;; Core
+            [patu.utils       ;; JS helper functions
+             :refer [jset-in! jset! jget-in jget]]))
 
 ;; 0 Constants
 (def pipe-open  80);
@@ -34,15 +30,15 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
 (def ceiling  -60)
 
 ;; 1. Initialize App
-(dispatch [:kaboom {:canvas (js/document.getElementById "app")
-                    :global true
-                    :fullscreen true
-                    :scale 3
-                    :debug true
-                    :clearColor [0 0 0 1]}])
+(p/dispatch [:kaboom {:canvas (js/document.getElementById "app")
+                      :global true
+                      :fullscreen true
+                      :scale 3
+                      :debug true
+                      :clearColor [0 0 0 1]}])
 
 ;; 2. Load Assets
-(dispatch-n
+(p/dispatch-n
  [[:load/root "https://kaboomjs.com/pub/examples/"]
   [:load/sprite [[:bg, "img/bg.png"];
                  [:birdy, "img/birdy.png"]
@@ -53,75 +49,75 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
 
 ;; Comments for testing
 (comment
-  (sub [:comp :player])
-  (sub [:comp :player :pos])
-  (sub [:comp :player :pos :x]))
+  (p/sub [:comp :player])
+  (p/sub [:comp :player :pos])
+  (p/sub [:comp :player :pos :x]))
 
 ;; 3. Register Event handlers
-(reg-event
+(p/reg-event
  :game/spawn-pipes
  (fn [_ _]
    (let [h1 (p/randd pipe-min-height (- (p/height) (+ pipe-min-height pipe-open)))]
-     (dispatch [:comp/reg-n [[[:sprite :pipe]
-                              [:origin :botleft]
-                              [:pos [(p/width) h1]]
-                              :pipe] ;; "give it tags to easier define behaviors see below"
-                             [[:sprite :pipe]
-                              [:origin :botleft]
-                              [:scale 1 -1]
-                              [:pos [(p/width) (+ h1 pipe-open)]]
-                              :pipe
-                              {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
+     (p/dispatch [:comp/reg-n [[[:sprite :pipe]
+                                [:origin :botleft]
+                                [:pos [(p/width) h1]]
+                                :pipe] ;; "give it tags to easier define behaviors see below"
+                               [[:sprite :pipe]
+                                [:origin :botleft]
+                                [:scale 1 -1]
+                                [:pos [(p/width) (+ h1 pipe-open)]]
+                                :pipe
+                                {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
 
-(reg-event
+(p/reg-event
  :score/add
  (fn [_ _]
-   (let [new-score (inc (sub [:comp :ui/score :value]))];]
-     (-> (sub [:comp :ui/score])
+   (let [new-score (inc (p/sub [:comp :ui/score :value]))];]
+     (-> (p/sub [:comp :ui/score])
          (jset! :value new-score)
          (jset! :text new-score)))))
 
-(reg-event
+(p/reg-event
  :pipe/destroy
  (fn [_ [_ pipe]]
    (.destroy pipe)))
 
-(reg-event
+(p/reg-event
  :pipe/handle-lifecycle
  (fn [_ [_ pipe pid]]
-   (let [player (sub [:comp pid])]
+   (let [player (p/sub [:comp pid])]
      (.move pipe (* -1 speed) 0)
-     (when (and (= (.-passed pipe) false)
-                (<= (+ (.. pipe -pos -x) (.-width pipe))
-                    (.. player -pos -x)))
+     (when (and (= (jget pipe :passed) false)
+                (<= (+ (jget-in pipe [:pos :x]) (jget pipe :width))
+                    (p/sub [:comp pid :pos :x])))
        (set! pipe -passed true)
-       (dispatch [:score/add]))
-     (when (< (.. pipe -pos -x)
+       (p/dispatch [:score/add]))
+     (when (< (jget-in pipe [:pos :x])
               ; 10)
               (/ (* -1 (p/width)) 2))
        (js/console.log "DESTROY")
-       (dispatch [:pipe/destroy pipe])))))
+       (p/dispatch [:pipe/destroy pipe])))))
 
-(reg-event
+(p/reg-event
  :player/go-south
  (fn [_ [_ id]]
-   (let [player (sub [:comp id])
-         newy (+ 10 (sub [:comp id :pos :y]))]
+   (let [player (p/sub [:comp id])
+         newy (+ 10 (p/sub [:comp id :pos :y]))]
      (jset-in! player [:pos :y] newy))))
 
-(reg-event
+(p/reg-event
  :comp/jump
  (fn [_ [_ cid]]
-   (dispatch-n [[:jump :player jump-force]
-                [:audio/play  :wooosh]])))
+   (p/dispatch-n [[:jump :player jump-force]
+                  [:audio/play  :wooosh]])))
 
-(reg-event
+(p/reg-event
  :player/check-ffall
  (fn [_ [_ id]]
-   (when (> (sub [:comp id :pos :y]) (p/height))
-     (dispatch [:go :lose]))
-   (when (<= (sub [:comp id :pos :y]) ceiling)
-     (dispatch [:go :lose]))))
+   (when (> (p/sub [:comp id :pos :y]) (p/height))
+     (p/dispatch [:go :lose]))
+   (when (<= (p/sub [:comp id :pos :y]) ceiling)
+     (p/dispatch [:go :lose]))))
 
 ;; 4. Scenes
 ;; ==== 4.1 Main Scene
@@ -143,7 +139,7 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
                  {:value 0}]]]]])
 
 (comment
-  (sub [:comp :player]))
+  (p/sub [:comp :player]))
 
 (defn main-evt []
   [[:action :player (fn [])]
@@ -153,18 +149,18 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
     [:left  [[:player {:x -10}]]]
     [:up    {:player {:y -10}}]
     [:down  {:dispatch [:player/go-south :player]}]]     ;;  For more complex scenario: use event registration (event handler needs to be registered first)
-   [:loop  1 #(dispatch [:game/spawn-pipes])]
-   [:key-press :space  #(dispatch [:comp/jump :player])]
+   [:loop  1 #(p/dispatch [:game/spawn-pipes])]
+   [:key-press :space  #(p/dispatch [:comp/jump :player])]
    [:action
-    [:player  #(dispatch [:player/check-ffall :player :ui/score])]
-    [:pipe    #(dispatch [:pipe/handle-lifecycle % :player])]]
-   [:collides  [:player :pipe] #(dispatch [:go :lose])]])
+    [:player  #(p/dispatch [:player/check-ffall :player :ui/score])]
+    [:pipe    #(p/dispatch [:pipe/handle-lifecycle % :player])]]
+   [:collides  [:player :pipe] #(p/dispatch [:go :lose])]])
 
 ;; === 4.2 Lose Scene
 (defn lose-init []
   (let [[x y] (p/center)
               ;; :value means we want .-value property from ui/score component
-        score (sub [:comp :ui/score :value])]
+        score (p/sub [:comp :ui/score :value])]
     [[:comp/reg-n [[[:text score 64]
                     [:pos [x y]]
                     [:origin :center]]
@@ -173,14 +169,14 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
                     [:origin :center]]]]]))
 
 (defn lose-evt []
-  [[:key-press :space #(dispatch [:go :main])]])
+  [[:key-press :space #(p/dispatch [:go :main])]])
 
 ;; === 4.3 Scene Registration
-(dispatch-n
+(p/dispatch-n
  [[:reg-scene :main main-init main-evt]
   [:reg-scene :lose lose-init lose-evt]])
 
 ;; === 5 Start App
 (defn app []
-  (dispatch [:go :main]))
+  (p/dispatch [:go :main]))
 ```

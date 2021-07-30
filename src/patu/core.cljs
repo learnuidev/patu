@@ -1,11 +1,21 @@
 (ns patu.core
   (:require  ["/kaboom.js" :as kaboom6]
-             [patu.events :refer [dispatch reg-event dispatch-n]]
-             [patu.subs :refer [sub reg-sub]]
+             [patu.events :as evt]
+             [patu.subs :as s]
              [patu.utils :refer [jget-in]]
              [patu.state :refer [state]]
+             [patu.loaders]
              [patu.components :as c]
              [patu.audio :as a]))
+
+;; Event
+(def dispatch evt/dispatch)
+(def dispatch-n evt/dispatch-n)
+(def reg-event evt/reg-event)
+
+;; Sub
+(def sub s/sub)
+(def reg-sub s/reg-sub)
 
 ;; Math Helpers
 (defn neg [num]
