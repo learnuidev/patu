@@ -15,21 +15,23 @@
 (def ceiling  -60)
 
 ;; 1. Initialize App
-(p/kaboom {:canvas (js/document.getElementById "app")
-           :global true
-           :scale 1
-           :debug true
-           :clearColor [0 0 0 1]})
+(dispatch [:kaboom {:canvas (js/document.getElementById "app")
+                    :global true
+                    :scale 1
+                    :debug true
+                    :clearColor [0 0 0 1]}])
 
 ;; 2. Load Assets
-(l/load-root "https://kaboomjs.com/pub/examples/");
-(l/load-sprite [[:bg, "img/bg.png"];
-                [:birdy, "img/birdy.png"]
-                [:pipe, "img/pipe.png"]]);
-(l/load-sound [[:score "sounds/score.mp3"]
-               [:wooosh "sounds/wooosh.mp3"]
-               [:hit "sounds/hit.mp3"]])
+(dispatch-n
+ [[:load/root "https://kaboomjs.com/pub/examples/"]
+  [:load/sprite [[:bg, "img/bg.png"];
+                 [:birdy, "img/birdy.png"]
+                 [:pipe, "img/pipe.png"]]]
+  [:load/sound [[:score "sounds/score.mp3"]
+                [:wooosh "sounds/wooosh.mp3"]
+                [:hit "sounds/hit.mp3"]]]])
 
+;; Comments for testing
 (comment
   (jget (sub [:comp :player]) :pos)
   (jget-in (sub [:comp :player]) [:pos :x]))
