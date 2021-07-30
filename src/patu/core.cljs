@@ -3,7 +3,9 @@
              [patu.events :refer [dispatch reg-event dispatch-n]]
              [patu.subs :refer [sub reg-sub]]
              [patu.utils :refer [jget-in]]
-             [patu.state :refer [state]]))
+             [patu.state :refer [state]]
+             [patu.components :as c]
+             [patu.audio :as a]))
 
 ;; Math Helpers
 (defn neg [num]
@@ -115,6 +117,20 @@
      (action (first comps) (second comps))
      (doseq [[id handler] comps]
        (action id handler)))))
+
+;; Components
+(reg-event
+ :jump
+ (fn [_ [_ id value]]
+   (if-let [comp (sub [:comp id])]
+     (c/jump! comp value)
+     (js/console.warn (str "No component found for component ID: " id)))))
+
+;; Audio Events ===
+(reg-event
+ :audio/play
+ (fn [_ [_ id]]
+   (a/play id)))
 
 (reg-event
  :key-down

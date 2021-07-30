@@ -93,18 +93,16 @@
 (reg-event
  :comp/jump
  (fn [_ [_ cid]]
-   (let [player (sub [:comp cid])]
-     (c/jump! player jump-force)
-     (a/play :wooosh))))
+   (dispatch-n [[:jump :player jump-force]
+                [:audio/play  :wooosh]])))
 
 (reg-event
  :player/check-ffall
  (fn [_ [_ id]]
-   (let [player (sub [:comp id])]
-     (when (> (.. player -pos -y) (p/height))
-       (dispatch [:go :lose]))
-     (when (<= (.. player -pos -y) ceiling)
-       (dispatch [:go :lose])))))
+   (when (> (sub [:comp id :pos :y]) (p/height))
+     (dispatch [:go :lose]))
+   (when (<= (sub [:comp id :pos :y]) ceiling)
+     (dispatch [:go :lose]))))
 
 ;; 4. Scenes
 ;; ==== 4.1 Main Scene
