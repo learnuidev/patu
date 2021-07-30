@@ -51,3 +51,6 @@
    [:left  [[:player {:x -10}]]]
    [:up    {:player {:y -10}}]
    [:down  {:dispatch [:player/go-south :player]}]]])   ;;  For more complex scenario: use event registration (event handler needs to be registered first)
+
+
+(defn app [])
