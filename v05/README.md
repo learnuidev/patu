@@ -1,6 +1,6 @@
 # Patu
 
-Patu was the name of my grandmother's cow when I was little. 
+Patu was the name of my grandmother's cow when I was little.
 
 Patu is also a ClojureScript library that helps you make games fast and fun! :)
 
@@ -15,15 +15,11 @@ A Flappy bird tutorial
 https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-aea7-14982c805137.mov
 
 ```clj
-(ns app.kaboom-examples.flappy
-  (:require
-   [clojure.repl :refer [doc]]
-   ;; Main Libs (5) ===
-   [app.patu.core :as p]                            ;; Core
-   [app.patu.loaders :as l]                         ;; Loaders
-   [app.patu.audio :as a]                           ;; Audio
-   [app.patu.components :as c]                      ;; Component Helpers
-   [app.patu.events :refer [reg-event dispatch]]))  ;; Event System))
+(ns patu.examples.flappy
+  (:require [patu.core :as p]
+            [patu.loaders :as l]
+            [patu.events :refer [reg-event dispatch dispatch-n]]
+            [patu.utils :refer [jget  jset-in jget-in jset!]]))
 
 ;; 0 Constants
 (def pipe-open  80);
@@ -32,130 +28,104 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
 (def speed  120)
 (def ceiling  -60)
 
-;; 1 Game Init
-(p/init {:canvas (js/document.getElementById "app")
-         :global true
-         :scale 2
-         :debug true
-         :clearColor [0 0 0 1]})
+;; 1. Initialize App
+(p/kaboom {:canvas (js/document.getElementById "app")
+           :global true
+           :scale 1
+           :debug true
+           :clearColor [0 0 0 1]})
 
-;; 2 Load Game Assets
-(l/load-root "https://kaboomjs.com/pub/examples/")
-(l/load-sprite :sprite/bg, "img/bg.png");
-(l/load-sprite :sprite/birdy, "img/birdy.png");
-(l/load-sprite :sprite/pipe, "img/pipe.png");
-(l/load-sound :sound/score "sounds/score.mp3")
-(l/load-sound :sound/wooosh "sounds/wooosh.mp3")
-(l/load-sound :sound/hit "sounds/hit.mp3")
+;; 2. Load Assets
+(l/load-root "https://kaboomjs.com/pub/examples/");
+(l/load-sprite [[:bg, "img/bg.png"];
+                [:birdy, "img/birdy.png"]
+                [:pipe, "img/pipe.png"]]);
+(l/load-sound [[:score "sounds/score.mp3"]
+               [:wooosh "sounds/wooosh.mp3"]
+               [:hit "sounds/hit.mp3"]])
 
-;; 3 Write dem event handlers (re-frame syntax)
-;; Events ===
+(comment
+  (jget (p/get-comp :player) :pos)
+  (jget-in (p/get-comp :player) [:pos :x]))
+
+;; 3. Register Event handlers
 (reg-event
  :game/spawn-pipes
  (fn [_ _]
    (let [h1 (p/randd pipe-min-height (- (p/height) (+ pipe-min-height pipe-open 10)))]
-     (p/dispatch [:component/add-n
-                  [[:sprite :sprite/pipe]
-                   [:origin :botleft]
-                   [:pos [(p/width) h1]]
-                   [:prop :pipe]] ;; "give it tags to easier define behaviors see below"
-                  [[:sprite :sprite/pipe]
-                   [:origin :botleft]
-                   [:scale 1 -1]
-                   [:pos [(p/width) (+ h1 pipe-open 20)]]
-                   [:prop :pipe]
-                   [:prop {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
+     (dispatch [:comp/reg-n [[[:sprite :pipe]
+                              [:origin :botleft]
+                              [:pos [(p/width) h1]]
+                              :pipe] ;; "give it tags to easier define behaviors see below"
+                             [[:sprite :pipe]
+                              [:origin :botleft]
+                              [:scale 1 -1]
+                              [:pos [(p/width) (+ h1 pipe-open 20)]]
+                              :pipe
+                              {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
 
-(defn add-score [score]
-  (set! score -value (inc (.-value score)));
-  (set! score -text (.-value score)));
+(reg-event
+ :score/add
+ (fn [_ [_ score]]
+   (set! score -value (inc (.-value score)));
+   (set! score -text (.-value score))));
 
 (reg-event
  :pipe/handle-lifecycle
  (fn [_ [_ pipe pid sid]]
-   (let [player (p/get-component pid)
-         score  (p/get-component sid)]
+   (let [player (p/get-comp pid)
+         score  (p/get-comp sid)]
      (.move pipe (* -1 speed) 0)
      (when (and (= (.-passed pipe) false)
                 (<= (+ (.. pipe -pos -x) (.-width pipe))
                     (.. player -pos -x)))
        (set! pipe -passed true)
-       (add-score score)))))
+       (dispatch [:score/add score])))))
 
 (reg-event
  :player/check-ffall
  (fn [_ [_ id score]]
-   (let [player (p/get-component id)]
+   (let [player (p/get-comp id)]
      (when (> (.. player -pos -y) (p/height))
        (p/go :scene/lose score))
      (when (<= (.. player -pos -y) ceiling)
        (p/go :scene/lose score)))))
 
 (reg-event
- :scene/go
- (fn [_ [_ sid score]]
-   (p/go sid (or score 0))))
+ :player/go-south
+ (fn [_ [_ id]]
+   (let [player (p/get-comp id)
+         newy (+ 10 (jget-in player [:pos :y]))]
+     (jset-in player [:pos :y] newy))))
 
-(reg-event
- :comp/jump
- (fn [_ [_ cid force]]
-   (let [player (p/get-component cid)]
-     (c/jump! player force)
-     (a/play :sound/wooosh))))
-
-;; 4. A Scenes --- Main Scene - 4.1 Scene Init Function
+;; 4. Register Scenes
+;; ==== 4.1 Main Scene
 (defn main-init []
-  [[:game/gravity 1200]
-   [:game/layers [:bg :game, :ui] :game]
-   [:cam/ignore [:ui]]
-   [:comp/reg-n
-    [:layer/bg [[:sprite :sprite/bg]
-                [:scale (/ (p/width) 240) (/ (p/height) 240)]
-                [:layer :bg]]]
-    [:player [[:sprite :sprite/birdy]
-              [:pos 120 0]
-              [:scale 1]
-              [:body {:jumpForce 320}]
-              [:origin :center]
-              [:prop {:speed 160}]]]
-    [:ui/score [[:text "0" 16]
-                [:pos 9 9]
-                [:layer :ui]
-                [:prop {:value  0}]]]]])
+  [[:comp/reg
+    [:player [[:sprite :birdy]
+              [:solid]
+              [:pos [100 100]]]]]])
 
-;; 4.2 Scene Event Handler
-(defn main-action []
-  (let [score (p/get-component :ui/score)]
-    [[:evt/key-press :space          #(dispatch [:comp/jump :player jump-force])]
-     [:game/loop     1               #(dispatch [:game/spawn-pipes])]
-     [:evt/action    :player         #(dispatch [:player/check-ffall :player (.-value score)])]
-     [:evt/action    :pipe           #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]
-     [:evt/collides  [:player :pipe] #(dispatch [:scene/go :scene/lose (.-value score)])]]))
+(defn main-evt []
+  [[:action :player (fn [])]
+   ;; Multiple ways to register an Event
+   [:key-down
+    [:right [[:player {:x 10}]]]                         ;;  For simple cases use data syntax
+    [:left  [[:player {:x -10}]]]
+    [:up    {:player {:y -10}}]
+    [:down  {:dispatch [:player/go-south :player]}]]   ;;  For more complex scenario: use event registration (event handler needs to be registered first)
+   [:loop  1 #(dispatch [:game/spawn-pipes])]])
 
-;; 4,3 Scene Registration
-(p/reg-scene :scene/main
-             {:init main-init
-              :evt main-action})
+(p/reg-scene :main {:init main-init
+                    :evt main-evt})
 
-;; 4. B Lose Scene ===
-(defn lose-init [score]
-  (let [[x y] (p/center)]
-    [[:comp/reg-n
-      [:ui/score-board [[:text score 64]
-                        [:pos x y]
-                        [:origin :center]]]
-      [:ui/score-board [[:text "Press space to restart" 16]
-                        [:pos x (+ y 50)]
-                        [:origin :center]]]]]))
+;; === 4.2 Lose Scene
+(defn lose-init [])
+(defn lose-evt [])
+(p/reg-scene :lose {:evt lose-init
+                    :init lose-evt})
 
-(defn lose-action []
-  [[:evt/key-press :space #(p/go :scene/main)]])
-  
-(p/reg-scene :scene/lose
-             {:init lose-init
-              :evt lose-action})
-
-;; 5 Start App
+;; === 5. Start App
 (defn app []
-  (p/start :scene/main))
+  (p/go :main))
 ```
