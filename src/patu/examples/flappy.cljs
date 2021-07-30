@@ -56,10 +56,10 @@
 (reg-event
  :score/add
  (fn [_ _]
-   (let [score (sub [:comp :ui/score])]
-     (set! score -value (inc (.-value score)));
-     (set! score -text (.-value score)))));
-
+   (let [new-score (inc (sub [:comp :ui/score :value]))];]
+     (-> (sub [:comp :ui/score])
+         (jset! :value new-score)
+         (jset! :text new-score)))))
 
 (reg-event
  :pipe/destroy
@@ -68,29 +68,19 @@
 
 (reg-event
  :pipe/handle-lifecycle
- (fn [_ [_ pipe pid sid]]
-   (let [player (sub [:comp pid])
-         score  (sub [:comp sid])]
+ (fn [_ [_ pipe pid]]
+   (let [player (sub [:comp pid])]
      (.move pipe (* -1 speed) 0)
      (when (and (= (.-passed pipe) false)
                 (<= (+ (.. pipe -pos -x) (.-width pipe))
                     (.. player -pos -x)))
        (set! pipe -passed true)
-       (dispatch [:score/add score]))
+       (dispatch [:score/add]))
      (when (< (.. pipe -pos -x)
               ; 10)
               (/ (* -1 (p/width)) 2))
        (js/console.log "DESTROY")
        (dispatch [:pipe/destroy pipe])))))
-
-(reg-event
- :player/check-ffall
- (fn [_ [_ id score]]
-   (let [player (sub [:comp id])]
-     (when (> (.. player -pos -y) (p/height))
-       (dispatch [:go :lose score]))
-     (when (<= (.. player -pos -y) ceiling)
-       (dispatch [:go :lose score])))))
 
 (reg-event
  :player/go-south
@@ -108,13 +98,12 @@
 
 (reg-event
  :player/check-ffall
- (fn [_ [_ id sid]]
-   (let [player (sub [:comp id])
-         score (sub [:comp sid])]
+ (fn [_ [_ id]]
+   (let [player (sub [:comp id])]
      (when (> (.. player -pos -y) (p/height))
-       (dispatch [:go :lose score]))
+       (dispatch [:go :lose]))
      (when (<= (.. player -pos -y) ceiling)
-       (dispatch [:go :lose score])))))
+       (dispatch [:go :lose])))))
 
 ;; 4. Scenes
 ;; ==== 4.1 Main Scene
@@ -150,12 +139,13 @@
    [:key-press :space  #(dispatch [:comp/jump :player jump-force])]
    [:action
     [:player  #(dispatch [:player/check-ffall :player :ui/score])]
-    [:pipe    #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]]
+    [:pipe    #(dispatch [:pipe/handle-lifecycle % :player])]]
    [:collides  [:player :pipe] #(dispatch [:go :lose])]])
 
 ;; === 4.2 Lose Scene
 (defn lose-init []
   (let [[x y] (p/center)
+              ;; :value means we want .-value property from ui/score component
         score (sub [:comp :ui/score :value])]
     [[:comp/reg-n [[[:text score 64]
                     [:pos [x y]]
