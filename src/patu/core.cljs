@@ -1,5 +1,5 @@
 (ns patu.core
-  (:require  ["/kaboom/v06.js" :as kaboom6]
+  (:require  ["/kaboom.js" :as kaboom6]
              [patu.events :refer [dispatch reg-event]]
              [patu.state :refer [state]]))
 
