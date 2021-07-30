@@ -5,7 +5,7 @@
             [patu.components :as c]
             [patu.subs :refer [sub reg-sub]]
             [patu.events :refer [reg-event dispatch dispatch-n]]
-            [patu.utils :refer [jget  jset-in jget-in jset!]]))
+            [patu.utils :refer [jset-in! jset!]]))
 
 ;; 0 Constants
 (def pipe-open  80);
@@ -34,8 +34,9 @@
 
 ;; Comments for testing
 (comment
-  (jget (sub [:comp :player]) :pos)
-  (jget-in (sub [:comp :player]) [:pos :x]))
+  (sub [:comp :player])
+  (sub [:comp :player :pos])
+  (sub [:comp :player :pos :x]))
 
 ;; 3. Register Event handlers
 (reg-event
@@ -86,14 +87,14 @@
  :player/go-south
  (fn [_ [_ id]]
    (let [player (sub [:comp id])
-         newy (+ 10 (jget-in player [:pos :y]))]
-     (jset-in player [:pos :y] newy))))
+         newy (+ 10 (sub [:comp id :pos :y]))]
+     (jset-in! player [:pos :y] newy))))
 
 (reg-event
  :comp/jump
- (fn [_ [_ cid force]]
+ (fn [_ [_ cid]]
    (let [player (sub [:comp cid])]
-     (c/jump! player force)
+     (c/jump! player jump-force)
      (a/play :wooosh))))
 
 (reg-event
@@ -109,7 +110,7 @@
 ;; ==== 4.1 Main Scene
 (defn main-init []
   [[:layers [:bg :game, :ui] :game]
-   [:gravity 600]
+   [:gravity 1000]
    [:cam/ignore [:ui]]
    [:comp/reg-n
     [[:bg [[:sprite :bg {:noArea true}]
@@ -118,7 +119,7 @@
      [:player [[:sprite :birdy]
                [:pos (/ (p/width) 4) 120]
                [:scale 1]
-               [:body {:jumpForce 420}]]]
+               [:body]]]
      [:ui/score [[:text "0" 16]
                  [:pos 9 9]
                  [:layer :ui]
@@ -136,7 +137,7 @@
     [:up    {:player {:y -10}}]
     [:down  {:dispatch [:player/go-south :player]}]]     ;;  For more complex scenario: use event registration (event handler needs to be registered first)
    [:loop  1 #(dispatch [:game/spawn-pipes])]
-   [:key-press :space  #(dispatch [:comp/jump :player jump-force])]
+   [:key-press :space  #(dispatch [:comp/jump :player])]
    [:action
     [:player  #(dispatch [:player/check-ffall :player :ui/score])]
     [:pipe    #(dispatch [:pipe/handle-lifecycle % :player])]]

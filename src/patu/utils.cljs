@@ -34,12 +34,12 @@
    obj))
 
 ;;
-(defn jset-in
+(defn jset-in!
   [obj props val]
   (let [f (first props)
         res (rest props)]
     (if (seq res)
-      (jset-in (jget obj f) res val)
+      (jset-in! (jget obj f) res val)
       (jset! obj f val))))
 
 (def ex-1 (clj->js {:foo {:bar 0}}))
