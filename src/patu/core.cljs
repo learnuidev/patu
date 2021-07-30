@@ -162,3 +162,8 @@
    (let [game (.default kaboom6 (clj->js opts))]
      (swap! state assoc :k game)
      game)))
+
+(reg-event
+ :kaboom
+ (fn [_ args]
+   (apply kaboom (rest args))))

@@ -1,10 +1,16 @@
 (ns patu.loaders
-  (:require  [patu.state :refer [state]]))
+  (:require  [patu.state :refer [state]]
+             [patu.events :refer [reg-event]]))
 
 ;; Kaboom Helpers
 ;; === Loaders ===
 (defn load-root [val]
   (.loadRoot (:k @state) val));
+
+(reg-event
+ :load/root
+ (fn [_ [_ url]]
+   (load-root url)))
 
 (defn load-sprite
   "Load a sprite or collection of sprites into the asset manager
@@ -33,6 +39,11 @@
   ([id val opts]
    (.loadSprite (:k @state) (name id) val (clj->js opts))));
 
+;;
+(reg-event
+ :load/sprite
+ (fn [_ args]
+   (apply load-sprite (rest args))))
 
 (defn load-sound
   "Load a sound:
@@ -44,3 +55,9 @@
      (load-sound id val)))
   ([id src]
    (.loadSound (:k @state) (name id) src)))
+
+;;
+(reg-event
+ :load/sound
+ (fn [_ args]
+   (apply load-sound (rest args))))
