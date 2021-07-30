@@ -20,6 +20,9 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
 (ns patu.examples.flappy
   (:require [patu.core :as p]
             [patu.loaders :as l]
+            [patu.audio :as a]
+            [patu.components :as c]
+            [patu.subs :refer [sub reg-sub]]
             [patu.events :refer [reg-event dispatch dispatch-n]]
             [patu.utils :refer [jget  jset-in jget-in jset!]]))
 
@@ -47,8 +50,8 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
                [:hit "sounds/hit.mp3"]])
 
 (comment
-  (jget (p/get-comp :player) :pos)
-  (jget-in (p/get-comp :player) [:pos :x]))
+  (jget (sub [:comp :player]) :pos)
+  (jget-in (sub [:comp :player]) [:pos :x]))
 
 ;; 3. Register Event handlers
 (reg-event
@@ -75,8 +78,8 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
 (reg-event
  :pipe/handle-lifecycle
  (fn [_ [_ pipe pid sid]]
-   (let [player (p/get-comp pid)
-         score  (p/get-comp sid)]
+   (let [player (sub [:comp pid])
+         score  (sub [:comp sid])]
      (.move pipe (* -1 speed) 0)
      (when (and (= (.-passed pipe) false)
                 (<= (+ (.. pipe -pos -x) (.-width pipe))
@@ -87,26 +90,43 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
 (reg-event
  :player/check-ffall
  (fn [_ [_ id score]]
-   (let [player (p/get-comp id)]
+   (let [player (sub [:comp id])]
      (when (> (.. player -pos -y) (p/height))
-       (p/go :scene/lose score))
+       (dispatch [:go :lose score]))
      (when (<= (.. player -pos -y) ceiling)
-       (p/go :scene/lose score)))))
+       (dispatch [:go :lose score])))))
 
 (reg-event
  :player/go-south
  (fn [_ [_ id]]
-   (let [player (p/get-comp id)
+   (let [player (sub [:comp id])
          newy (+ 10 (jget-in player [:pos :y]))]
      (jset-in player [:pos :y] newy))))
 
-;; 4. Register Scenes
+(reg-event
+ :comp/jump
+ (fn [_ [_ cid force]]
+   (let [player (sub [:comp cid])]
+     (c/jump! player force)
+     (a/play :wooosh))))
+
+;; 4. Scenes
 ;; ==== 4.1 Main Scene
 (defn main-init []
-  [[:comp/reg
-    [:player [[:sprite :birdy]
-              [:solid]
-              [:pos [100 100]]]]]])
+  [[:layers [:bg :game, :ui] :game]
+   [:gravity 500]
+   [:comp/reg-n
+    [[:bg [[:sprite :bg {:noArea true}]
+           [:scale (/ (p/width) 240) (/ (p/height) 240)]
+           [:layer :bg]]]
+     [:player [[:sprite :birdy]
+               [:pos 420 120]
+               [:scale 2]
+               [:body {:jumpForce 420}]
+               [:layer :ui]]]]]])
+
+(comment
+  (sub [:comp :player]))
 
 (defn main-evt []
   [[:action :player (fn [])]
@@ -115,18 +135,20 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
     [:right [[:player {:x 10}]]]                         ;;  For simple cases use data syntax
     [:left  [[:player {:x -10}]]]
     [:up    {:player {:y -10}}]
-    [:down  {:dispatch [:player/go-south :player]}]]   ;;  For more complex scenario: use event registration (event handler needs to be registered first)
-   [:loop  1 #(dispatch [:game/spawn-pipes])]])
-
-(p/reg-scene :main {:init main-init
-                    :evt main-evt})
+    [:down  {:dispatch [:player/go-south :player]}]]     ;;  For more complex scenario: use event registration (event handler needs to be registered first)
+   [:loop  1 #(dispatch [:game/spawn-pipes])]
+   [:key-press :space  #(dispatch [:comp/jump :player jump-force])]])
 
 ;; === 4.2 Lose Scene
 (defn lose-init [])
 (defn lose-evt [])
-(p/reg-scene :lose {:evt lose-init
-                    :init lose-evt})
 
+;; === 4.3 Scene Registration
+(dispatch-n
+ [[:reg-scene :main main-init main-evt]
+  [:reg-scene :lose lose-init lose-evt]])
+
+;; === 5 Start App
 (defn app []
-  (p/go :main))
+  (dispatch [:go :main]))
 ```
