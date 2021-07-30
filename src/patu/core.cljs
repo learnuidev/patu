@@ -2,7 +2,12 @@
   (:require  ["/kaboom.js" :as kaboom6]
              [patu.events :refer [dispatch reg-event dispatch-n]]
              [patu.subs :refer [sub reg-sub]]
+             [patu.utils :refer [jget-in]]
              [patu.state :refer [state]]))
+
+;; Math Helpers
+(defn neg [num]
+  (* -1 num))
 
 ;; Dimensions
 (defn height []
@@ -12,6 +17,10 @@
   (height))
 (defn width []
   (.width (:k @state)))
+
+;;
+(defn center []
+  [(/ (width) 2) (/ (height) 2)])
 
 (defn randd [v1 v2]
   (.rand (:k @state) v1 v2))
@@ -55,27 +64,33 @@
 ;;
 (reg-sub
  :comp
- (fn [_ [_ id]]
-   (get-comp id)))
+ (fn [_ [_ id & props]]
+   (if props
+     (jget-in (get-comp id) props)
+     (get-comp id))))
 (comment
   (get-comp :birdy)
   (get-comp :player))
 
 ;; == 2. Event API
+;; TODO: Make it general
+(defn data->fn  [id data]
+  (fn []
+    (if (= js/Function (type data))
+      (data)
+      (doseq [[cid props] data]
+        (if (= :dispatch cid)
+          (dispatch props)
+          (when-let [comp (get-comp cid)]
+            (doseq [[k v] props]
+              (when (= k :x)
+                (set! (.. comp -pos -x) (+ (.. comp -pos -x) v)))
+              (when (= k :y)
+                (set! (.. comp -pos -y) (+ (.. comp -pos -y) v))))))))))
+
 (defn key-down [dir data]
   ;; (println "TYPE: " data)
-  (let [handler (fn []
-                  (if (= js/Function (type data))
-                    (data)
-                    (doseq [[cid props] data]
-                      (if (= :dispatch cid)
-                        (dispatch props)
-                        (when-let [comp (get-comp cid)]
-                          (doseq [[k v] props]
-                            (when (= k :x)
-                              (set! (.. comp -pos -x) (+ (.. comp -pos -x) v)))
-                            (when (= k :y)
-                              (set! (.. comp -pos -y) (+ (.. comp -pos -y) v)))))))))]
+  (let [handler (data->fn dir data)]
     (.keyDown (:k @state) (name dir) handler)))
 
 ;; ==== Event Registation ===
@@ -85,6 +100,13 @@
     (if (.-action comp)
       (.action comp handler)
       (.action (:k @state) (name id) handler))))
+
+;;
+; (defmethod dispatch :evt/action [[_ id handler]]
+;   (when-let [comp (get-component id)]
+;     (if (.-action comp)
+;       (.action comp handler)
+;       (.action (:game @game-state) (name id) handler))))
 
 (reg-event
  :action
@@ -110,6 +132,7 @@
 (reg-event
  :loop
  (fn [_ [_ time handler]]
+
    (.loop (:k @state) time handler)))
 
 (reg-event
@@ -121,6 +144,25 @@
  :gravity
  (fn [_ [_ value]]
    (.gravity (:k @state) value)))
+
+;;
+(comment)
+  ; (get-comp :pipe))
+
+
+(reg-event
+ :collides
+ (fn [_ [_ [id target] handler]]
+   (.collides (get-comp :player) "pipe" handler)))
+
+;;
+(defn cam-ignore [game val]
+  (.camIgnore game (clj->js val)))
+
+(reg-event
+ :cam/ignore
+ (fn [_ [_ backgrounds]]
+   (.camIgnore (:k @state) (clj->js backgrounds))))
 
 (reg-event
  :comp/reg

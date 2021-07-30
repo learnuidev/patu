@@ -17,7 +17,8 @@
 ;; 1. Initialize App
 (dispatch [:kaboom {:canvas (js/document.getElementById "app")
                     :global true
-                    :scale 1
+                    :fullscreen true
+                    :scale 3
                     :debug true
                     :clearColor [0 0 0 1]}])
 
@@ -40,7 +41,7 @@
 (reg-event
  :game/spawn-pipes
  (fn [_ _]
-   (let [h1 (p/randd pipe-min-height (- (p/height) (+ pipe-min-height pipe-open 10)))]
+   (let [h1 (p/randd pipe-min-height (- (p/height) (+ pipe-min-height pipe-open)))]
      (dispatch [:comp/reg-n [[[:sprite :pipe]
                               [:origin :botleft]
                               [:pos [(p/width) h1]]
@@ -48,15 +49,22 @@
                              [[:sprite :pipe]
                               [:origin :botleft]
                               [:scale 1 -1]
-                              [:pos [(p/width) (+ h1 pipe-open 20)]]
+                              [:pos [(p/width) (+ h1 pipe-open)]]
                               :pipe
                               {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
 
 (reg-event
  :score/add
- (fn [_ [_ score]]
-   (set! score -value (inc (.-value score)));
-   (set! score -text (.-value score))));
+ (fn [_ _]
+   (let [score (sub [:comp :ui/score])]
+     (set! score -value (inc (.-value score)));
+     (set! score -text (.-value score)))));
+
+
+(reg-event
+ :pipe/destroy
+ (fn [_ [_ pipe]]
+   (.destroy pipe)))
 
 (reg-event
  :pipe/handle-lifecycle
@@ -68,7 +76,12 @@
                 (<= (+ (.. pipe -pos -x) (.-width pipe))
                     (.. player -pos -x)))
        (set! pipe -passed true)
-       (dispatch [:score/add score])))))
+       (dispatch [:score/add score]))
+     (when (< (.. pipe -pos -x)
+              ; 10)
+              (/ (* -1 (p/width)) 2))
+       (js/console.log "DESTROY")
+       (dispatch [:pipe/destroy pipe])))))
 
 (reg-event
  :player/check-ffall
@@ -93,20 +106,34 @@
      (c/jump! player force)
      (a/play :wooosh))))
 
+(reg-event
+ :player/check-ffall
+ (fn [_ [_ id sid]]
+   (let [player (sub [:comp id])
+         score (sub [:comp sid])]
+     (when (> (.. player -pos -y) (p/height))
+       (dispatch [:go :lose score]))
+     (when (<= (.. player -pos -y) ceiling)
+       (dispatch [:go :lose score])))))
+
 ;; 4. Scenes
 ;; ==== 4.1 Main Scene
 (defn main-init []
   [[:layers [:bg :game, :ui] :game]
-   [:gravity 500]
+   [:gravity 600]
+   [:cam/ignore [:ui]]
    [:comp/reg-n
     [[:bg [[:sprite :bg {:noArea true}]
            [:scale (/ (p/width) 240) (/ (p/height) 240)]
            [:layer :bg]]]
      [:player [[:sprite :birdy]
-               [:pos 420 120]
-               [:scale 2]
-               [:body {:jumpForce 420}]
-               [:layer :ui]]]]]])
+               [:pos (/ (p/width) 4) 120]
+               [:scale 1]
+               [:body {:jumpForce 420}]]]
+     [:ui/score [[:text "0" 16]
+                 [:pos 9 9]
+                 [:layer :ui]
+                 {:value 0}]]]]])
 
 (comment
   (sub [:comp :player]))
@@ -120,11 +147,25 @@
     [:up    {:player {:y -10}}]
     [:down  {:dispatch [:player/go-south :player]}]]     ;;  For more complex scenario: use event registration (event handler needs to be registered first)
    [:loop  1 #(dispatch [:game/spawn-pipes])]
-   [:key-press :space  #(dispatch [:comp/jump :player jump-force])]])
+   [:key-press :space  #(dispatch [:comp/jump :player jump-force])]
+   [:action
+    [:player  #(dispatch [:player/check-ffall :player :ui/score])]
+    [:pipe    #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]]
+   [:collides  [:player :pipe] #(dispatch [:go :lose])]])
 
 ;; === 4.2 Lose Scene
-(defn lose-init [])
-(defn lose-evt [])
+(defn lose-init []
+  (let [[x y] (p/center)
+        score (sub [:comp :ui/score :value])]
+    [[:comp/reg-n [[[:text score 64]
+                    [:pos [x y]]
+                    [:origin :center]]
+                   [[:text "Press space to restart" 16]
+                    [:pos x (+ y 50)]
+                    [:origin :center]]]]]))
+
+(defn lose-evt []
+  [[:key-press :space #(dispatch [:go :main])]])
 
 ;; === 4.3 Scene Registration
 (dispatch-n
