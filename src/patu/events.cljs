@@ -1,6 +1,5 @@
 (ns patu.events
-  (:require  ["/kaboom/v06.js" :as kaboom6]
-             [patu.state :refer [state]]))
+  (:require  [patu.state :refer [state]]))
 
 ;; Game Events
 ;; == 4. Event store

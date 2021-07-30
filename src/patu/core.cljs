@@ -49,7 +49,7 @@
 
 ;; == 2. Event API
 (defn key-down [dir data]
-  (println "TYPE: " data)
+  ;; (println "TYPE: " data)
   (let [handler (fn []
                   (if (= js/Function (type data))
                     (data)
@@ -97,6 +97,16 @@
  :loop
  (fn [_ [_ time handler]]
    (.loop (:k @state) time handler)))
+
+(reg-event
+ :layers
+ (fn [_ [_ layers main-layer]]
+   (.layers (:k @state) (clj->js layers) (name main-layer))))
+
+(reg-event
+ :gravity
+ (fn [_ [_ value]]
+   (.gravity (:k @state) value)))
 
 (reg-event
  :comp/reg
