@@ -1,10 +1,9 @@
 (ns patu.core
-  (:require  ["/kaboom/v06.js" :as kaboom6]))
+  (:require  ["/kaboom/v06.js" :as kaboom6]
+             [patu.events :refer [dispatch reg-event]]
+             [patu.state :refer [state]]))
 
-;; == 1. State
-(def state (atom {:k nil}))
-
-;; == 2. Components
+;; == 1. Component API
 (defn reg-comp
   ([data]
    (.reg_comp (:k @state) (clj->js data)))
@@ -28,36 +27,22 @@
   (get-comp :birdy)
   (get-comp :player))
 
-;; Event Handler Functions
-;; == 3. Key handlers
+;; == 2. Event API
 (defn key-down [dir data]
-  (if (= js/Function (type data))
-    (.keyDown (:k @state) (name dir) data)
-    (let [handler (fn [comp]
+  (println "TYPE: " data)
+  (let [handler (fn []
+                  (if (= js/Function (type data))
+                    (data)
                     (doseq [[cid props] data]
-                      (when-let [comp (get-comp cid)]
-                        (doseq [[k v] props]
-                          (when (= k :x)
-                            (set! (.. comp -pos -x) (+ (.. comp -pos -x) v)))
-                          (when (= k :y)
-                            (set! (.. comp -pos -y) (+ (.. comp -pos -y) v)))))))]
-      (.keyDown (:k @state) (name dir) handler))))
-
-;; Game Events
-;; == 4. Event store
-(def evts-store (atom {}))
-
-(defn reg-event [id handler]
-  (swap! evts-store assoc id handler))
-
-(defn dispatch [props]
-  (if-let [handler (get @evts-store (nth props 0))]
-    (handler nil props)
-    (js/console.log (str "No event handler registered for: " (nth props 0)))))
-
-(defn dispatch-n [data]
-  (doseq [props data]
-    (dispatch props)))
+                      (if (= :dispatch cid)
+                        (dispatch props)
+                        (when-let [comp (get-comp cid)]
+                          (doseq [[k v] props]
+                            (when (= k :x)
+                              (set! (.. comp -pos -x) (+ (.. comp -pos -x) v)))
+                            (when (= k :y)
+                              (set! (.. comp -pos -y) (+ (.. comp -pos -y) v)))))))))]
+    (.keyDown (:k @state) (name dir) handler)))
 
 ;; ==== Event Registation ===
 ;; 1. Action
@@ -75,14 +60,14 @@
      (doseq [[id handler] comps]
        (action id handler)))))
 
-;; 2. key down
 (reg-event
  :key-down
  (fn [_ [_ & comps]]
    (doseq [[dir handler] comps]
-     (key-down dir handler))))
+     (if (= js/Function (type handler))
+       (handler)
+       (key-down dir handler)))))
 
-;; 3. key press
 (reg-event
  :key-press
  (fn [_ [_ id handler]]
@@ -98,6 +83,7 @@
  (fn [_ [_ datas]]
    (reg-comp-n datas)))
 
+;; ==== Core
 (defn kaboom
   ([]
    (let [game (.default kaboom 6)]
@@ -107,8 +93,3 @@
    (let [game (.default kaboom6 (clj->js opts))]
      (swap! state assoc :k game)
      game)))
-
-(defn load-root [val]
-  (.loadRoot (:k @state) val));
-(defn load-sprite [id val]
-  (.loadSprite (:k @state) (name id) val));
