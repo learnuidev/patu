@@ -1,6 +1,7 @@
 (ns patu.core
   (:require  ["/kaboom.js" :as kaboom6]
              [patu.events :refer [dispatch reg-event dispatch-n]]
+             [patu.subs :refer [sub reg-sub]]
              [patu.state :refer [state]]))
 
 ;; Dimensions
@@ -21,6 +22,14 @@
    (.go (:k @state) (name id)))
   ([id opts]
    (.go (:k @state) (name id) (clj->js opts))))
+
+(reg-event
+ :go
+ (fn [_ [_ id opts]]
+   (if opts
+     (go id opts)
+     (go id))))
+
 ;; == 1. Component API
 (defn reg-comp
   ([data]
@@ -43,6 +52,11 @@
 (defn get-comp [id]
   (.get_comp (:k @state) (name id)))
 
+;;
+(reg-sub
+ :comp
+ (fn [_ [_ id]]
+   (get-comp id)))
 (comment
   (get-comp :birdy)
   (get-comp :player))
@@ -131,6 +145,12 @@
                   (dispatch-n (init state))
                   (dispatch-n (evt state)))]
     (scene (:k @state) id handler)))
+
+;; Scenes are just data
+(reg-event
+ :reg-scene
+ (fn [_ [_ id init evt]]
+   (reg-scene  id {:init init :evt evt})))
 
 ;; ==== Core
 (defn kaboom

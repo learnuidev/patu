@@ -3,6 +3,7 @@
             [patu.loaders :as l]
             [patu.audio :as a]
             [patu.components :as c]
+            [patu.subs :refer [sub reg-sub]]
             [patu.events :refer [reg-event dispatch dispatch-n]]
             [patu.utils :refer [jget  jset-in jget-in jset!]]))
 
@@ -30,8 +31,8 @@
                [:hit "sounds/hit.mp3"]])
 
 (comment
-  (jget (p/get-comp :player) :pos)
-  (jget-in (p/get-comp :player) [:pos :x]))
+  (jget (sub [:comp :player]) :pos)
+  (jget-in (sub [:comp :player]) [:pos :x]))
 
 ;; 3. Register Event handlers
 (reg-event
@@ -58,8 +59,8 @@
 (reg-event
  :pipe/handle-lifecycle
  (fn [_ [_ pipe pid sid]]
-   (let [player (p/get-comp pid)
-         score  (p/get-comp sid)]
+   (let [player (sub [:comp pid])
+         score  (sub [:comp sid])]
      (.move pipe (* -1 speed) 0)
      (when (and (= (.-passed pipe) false)
                 (<= (+ (.. pipe -pos -x) (.-width pipe))
@@ -70,28 +71,27 @@
 (reg-event
  :player/check-ffall
  (fn [_ [_ id score]]
-   (let [player (p/get-comp id)]
+   (let [player (sub [:comp id])]
      (when (> (.. player -pos -y) (p/height))
-       (p/go :scene/lose score))
+       (dispatch [:go :lose score]))
      (when (<= (.. player -pos -y) ceiling)
-       (p/go :scene/lose score)))))
+       (dispatch [:go :lose score])))))
 
 (reg-event
  :player/go-south
  (fn [_ [_ id]]
-   (let [player (p/get-comp id)
+   (let [player (sub [:comp id])
          newy (+ 10 (jget-in player [:pos :y]))]
      (jset-in player [:pos :y] newy))))
 
-;;
 (reg-event
  :comp/jump
  (fn [_ [_ cid force]]
-   (let [player (p/get-comp cid)]
+   (let [player (sub [:comp cid])]
      (c/jump! player force)
      (a/play :wooosh))))
 
-;; 4. Register Scenes
+;; 4. Scenes
 ;; ==== 4.1 Main Scene
 (defn main-init []
   [[:layers [:bg :game, :ui] :game]
@@ -107,7 +107,7 @@
                [:layer :ui]]]]]])
 
 (comment
-  (js/console.log (.-pos (p/get-comp :player))))
+  (sub [:comp :player]))
 
 (defn main-evt []
   [[:action :player (fn [])]
@@ -120,14 +120,15 @@
    [:loop  1 #(dispatch [:game/spawn-pipes])]
    [:key-press :space  #(dispatch [:comp/jump :player jump-force])]])
 
-(p/reg-scene :main {:init main-init
-                    :evt main-evt})
-
 ;; === 4.2 Lose Scene
 (defn lose-init [])
 (defn lose-evt [])
-(p/reg-scene :lose {:evt lose-init
-                    :init lose-evt})
 
+;; === 4.3 Scene Registration
+(dispatch-n
+ [[:reg-scene :main main-init main-evt]
+  [:reg-scene :lose lose-init lose-evt]])
+
+;; === 5 Start App
 (defn app []
-  (p/go :main))
+  (dispatch [:go :main]))
