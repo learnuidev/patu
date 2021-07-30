@@ -1,6 +1,8 @@
 (ns patu.examples.flappy
   (:require [patu.core :as p]
             [patu.loaders :as l]
+            [patu.audio :as a]
+            [patu.components :as c]
             [patu.events :refer [reg-event dispatch dispatch-n]]
             [patu.utils :refer [jget  jset-in jget-in jset!]]))
 
@@ -81,13 +83,31 @@
          newy (+ 10 (jget-in player [:pos :y]))]
      (jset-in player [:pos :y] newy))))
 
+;;
+(reg-event
+ :comp/jump
+ (fn [_ [_ cid force]]
+   (let [player (p/get-comp cid)]
+     (c/jump! player force)
+     (a/play :wooosh))))
+
 ;; 4. Register Scenes
 ;; ==== 4.1 Main Scene
 (defn main-init []
-  [[:comp/reg
-    [:player [[:sprite :birdy]
-              [:solid]
-              [:pos [100 100]]]]]])
+  [[:layers [:bg :game, :ui] :game]
+   [:gravity 500]
+   [:comp/reg-n
+    [[:bg [[:sprite :bg {:noArea true}]
+           [:scale (/ (p/width) 240) (/ (p/height) 240)]
+           [:layer :bg]]]
+     [:player [[:sprite :birdy]
+               [:pos 420 120]
+               [:scale 2]
+               [:body {:jumpForce 420}]
+               [:layer :ui]]]]]])
+
+(comment
+  (js/console.log (.-pos (p/get-comp :player))))
 
 (defn main-evt []
   [[:action :player (fn [])]
@@ -96,8 +116,9 @@
     [:right [[:player {:x 10}]]]                         ;;  For simple cases use data syntax
     [:left  [[:player {:x -10}]]]
     [:up    {:player {:y -10}}]
-    [:down  {:dispatch [:player/go-south :player]}]]   ;;  For more complex scenario: use event registration (event handler needs to be registered first)
-   [:loop  1 #(dispatch [:game/spawn-pipes])]])
+    [:down  {:dispatch [:player/go-south :player]}]]     ;;  For more complex scenario: use event registration (event handler needs to be registered first)
+   [:loop  1 #(dispatch [:game/spawn-pipes])]
+   [:key-press :space  #(dispatch [:comp/jump :player jump-force])]])
 
 (p/reg-scene :main {:init main-init
                     :evt main-evt})

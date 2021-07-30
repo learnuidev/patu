@@ -3,32 +3,32 @@ function IDList() {
   this.lastID = 0;
 }
 
-IDList.prototype.push = function(v) {
+IDList.prototype.push = function (v) {
   const id = this.lastID;
   this.map.set(id, v);
   this.lastID++;
   return id;
 };
 
-IDList.prototype.pushd = function(v) {
+IDList.prototype.pushd = function (v) {
   const id = this.push(v);
   return () => this.delete(id);
 };
 
-IDList.prototype.set = function(id, value) {
+IDList.prototype.set = function (id, value) {
   return this.map.set(id, value);
 };
-IDList.prototype.get = function(id) {
+IDList.prototype.get = function (id) {
   return this.map.get(id);
 };
 
-IDList.prototype.forEach = function(cb) {
+IDList.prototype.forEach = function (cb) {
   return this.map.forEach(cb);
 };
-IDList.prototype.values = function() {
+IDList.prototype.values = function () {
   return this.map.values();
 };
-IDList.prototype.delete = function(id) {
+IDList.prototype.delete = function (id) {
   return this.map.delete(id);
 };
 function deg2rad(deg) {
@@ -124,7 +124,7 @@ function vec2(...args) {
     },
     str() {
       return `(${this.x}, ${this.y})`;
-    }
+    },
   };
 }
 
@@ -139,7 +139,7 @@ function vec3(x, y, z) {
     z: z,
     xy() {
       return vec2(this.x, this.y);
-    }
+    },
   };
 }
 
@@ -226,7 +226,7 @@ function rgba(...args) {
         this.b === other.g &&
         this.a === other.a
       );
-    }
+    },
   };
 }
 
@@ -254,7 +254,7 @@ function quad(x, y, w, h) {
         this.w === other.w &&
         this.h === other.h
       );
-    }
+    },
   };
 }
 
@@ -303,7 +303,7 @@ function mat4(m) {
           p.x * this.m[3] +
           p.y * this.m[7] +
           p.z * this.m[11] +
-          p.w * this.m[15]
+          p.w * this.m[15],
       };
     },
 
@@ -312,7 +312,7 @@ function mat4(m) {
         x: p.x,
         y: p.y,
         z: p.z,
-        w: 1.0
+        w: 1.0,
       });
       return vec3(p4.x, p4.y, p4.z);
     },
@@ -354,7 +354,7 @@ function mat4(m) {
           0,
           0,
           0,
-          1
+          1,
         ])
       );
     },
@@ -377,7 +377,7 @@ function mat4(m) {
           0,
           0,
           0,
-          1
+          1,
         ])
       );
     },
@@ -400,7 +400,7 @@ function mat4(m) {
           0,
           0,
           0,
-          1
+          1,
         ])
       );
     },
@@ -461,7 +461,7 @@ function mat4(m) {
       }
 
       return mat4(out);
-    }
+    },
   };
 }
 
@@ -509,7 +509,7 @@ function makeRng(seed) {
           );
         }
       }
-    }
+    },
   };
 }
 
@@ -584,7 +584,7 @@ function colRectPt(r, pt) {
 function makeLine(p1, p2) {
   return {
     p1: p1.clone(),
-    p2: p2.clone()
+    p2: p2.clone(),
   };
 }
 
@@ -752,22 +752,8 @@ function gfxInit(gl, gconf) {
     const bgTex = makeTex(
       new ImageData(
         new Uint8ClampedArray([
-          128,
-          128,
-          128,
-          255,
-          190,
-          190,
-          190,
-          255,
-          190,
-          190,
-          190,
-          255,
-          128,
-          128,
-          128,
-          255
+          128, 128, 128, 255, 190, 190, 190, 255, 190, 190, 190, 255, 128, 128,
+          128, 255,
         ]),
         2,
         2
@@ -789,7 +775,7 @@ function gfxInit(gl, gconf) {
       transform: mat4(),
       transformStack: [],
       clearColor: c,
-      bgTex: bgTex
+      bgTex: bgTex,
     };
   })();
 
@@ -829,7 +815,7 @@ function gfxInit(gl, gconf) {
       },
       unbind() {
         gl.bindTexture(gl.TEXTURE_2D, null);
-      }
+      },
     };
   }
 
@@ -912,7 +898,7 @@ function gfxInit(gl, gconf) {
           }
         }
         this.unbind();
-      }
+      },
     };
   }
 
@@ -932,7 +918,7 @@ function gfxInit(gl, gconf) {
       tex: tex,
       map: map,
       qw: qw,
-      qh: qh
+      qh: qh,
     };
   }
 
@@ -962,12 +948,12 @@ function gfxInit(gl, gconf) {
     gfx.curProg = prog;
     gfx.curUniform = uniform;
 
-    const nIndices = indices.map(i => {
+    const nIndices = indices.map((i) => {
       return i + gfx.vqueue.length / STRIDE;
     });
 
     const nVerts = verts
-      .map(v => {
+      .map((v) => {
         const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
         return [
           pt.x,
@@ -978,13 +964,13 @@ function gfxInit(gl, gconf) {
           v.color.r,
           v.color.g,
           v.color.b,
-          v.color.a
+          v.color.a,
         ];
       })
       .flat();
 
-    nIndices.forEach(i => gfx.iqueue.push(i));
-    nVerts.forEach(v => gfx.vqueue.push(v));
+    nIndices.forEach((i) => gfx.iqueue.push(i));
+    nVerts.forEach((v) => gfx.vqueue.push(v));
   }
 
   function flush() {
@@ -1031,7 +1017,7 @@ function gfxInit(gl, gconf) {
           (width() * scale()) / BG_GRID_SIZE,
           (height() * scale()) / BG_GRID_SIZE
         ),
-        tex: gfx.bgTex
+        tex: gfx.bgTex,
       });
     }
 
@@ -1128,23 +1114,23 @@ function gfxInit(gl, gconf) {
         {
           pos: vec3(-w / 2, h / 2, z),
           uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y : q.y + q.h),
-          color: color
+          color: color,
         },
         {
           pos: vec3(-w / 2, -h / 2, z),
           uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y + q.h : q.y),
-          color: color
+          color: color,
         },
         {
           pos: vec3(w / 2, -h / 2, z),
           uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y + q.h : q.y),
-          color: color
+          color: color,
         },
         {
           pos: vec3(w / 2, h / 2, z),
           uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y : q.y + q.h),
-          color: color
-        }
+          color: color,
+        },
       ],
       [0, 1, 3, 1, 2, 3],
       conf.tex,
@@ -1181,7 +1167,7 @@ function gfxInit(gl, gconf) {
             quad: q,
             width: w,
             height: h,
-            origin: "topleft"
+            origin: "topleft",
           });
         }
       }
@@ -1204,7 +1190,7 @@ function gfxInit(gl, gconf) {
         tex: tex,
         quad: q,
         width: w,
-        height: h
+        height: h,
       });
     }
   }
@@ -1214,7 +1200,7 @@ function gfxInit(gl, gconf) {
       ...conf,
       pos: pos,
       width: w,
-      height: h
+      height: h,
     });
   }
 
@@ -1244,7 +1230,7 @@ function gfxInit(gl, gconf) {
       width: w,
       height: h,
       rot: rot,
-      origin: "center"
+      origin: "center",
     });
   }
 
@@ -1257,18 +1243,18 @@ function gfxInit(gl, gconf) {
         {
           pos: vec3(p1.x, p1.y, z),
           uv: vec2(0, 0),
-          color: color
+          color: color,
         },
         {
           pos: vec3(p2.x, p2.y, z),
           uv: vec2(0, 0),
-          color: color
+          color: color,
         },
         {
           pos: vec3(p3.x, p3.y, z),
           uv: vec2(0, 0),
-          color: color
-        }
+          color: color,
+        },
       ],
       [0, 1, 2],
       gfx.defTex,
@@ -1363,7 +1349,7 @@ function gfxInit(gl, gconf) {
             color: conf.color,
             origin: conf.origin,
             scale: scale,
-            z: conf.z
+            z: conf.z,
           });
         }
       });
@@ -1372,7 +1358,7 @@ function gfxInit(gl, gconf) {
     return {
       width: tw,
       height: th,
-      chars: fchars
+      chars: fchars,
     };
   }
 
@@ -1393,7 +1379,7 @@ function gfxInit(gl, gconf) {
         quad: ch.quad,
         // TODO: topleft
         origin: "center",
-        z: ch.z
+        z: ch.z,
       });
     }
   }
@@ -1438,7 +1424,7 @@ function gfxInit(gl, gconf) {
     popTransform,
     pushMatrix,
     drawCalls,
-    clearColor
+    clearColor,
   };
 }
 // === 3 **GFX** ===
@@ -1479,7 +1465,7 @@ function appInit(gconf = {}) {
     stopped: false,
     fps: 0,
     fpsBuf: [],
-    fpsTimer: 0
+    fpsTimer: 0,
   };
 
   const keyMap = {
@@ -1487,7 +1473,7 @@ function appInit(gconf = {}) {
     ArrowRight: "right",
     ArrowUp: "up",
     ArrowDown: "down",
-    " ": "space"
+    " ": "space",
   };
 
   const preventDefaultKeys = [
@@ -1507,7 +1493,7 @@ function appInit(gconf = {}) {
     "f8",
     "f9",
     "f10",
-    "f11"
+    "f11",
   ];
 
   if (gconf.fullscreen) {
@@ -1534,7 +1520,7 @@ function appInit(gconf = {}) {
     depth: true,
     stencil: true,
     alpha: true,
-    preserveDrawingBuffer: true
+    preserveDrawingBuffer: true,
   });
 
   app.isTouch =
@@ -1542,7 +1528,7 @@ function appInit(gconf = {}) {
     navigator.maxTouchPoints > 0 ||
     navigator.msMaxTouchPoints > 0;
 
-  app.canvas.addEventListener("mousemove", e => {
+  app.canvas.addEventListener("mousemove", (e) => {
     app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
     app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
     app.mouseMoved = true;
@@ -1556,7 +1542,7 @@ function appInit(gconf = {}) {
     app.mouseState = "released";
   });
 
-  app.canvas.addEventListener("keydown", e => {
+  app.canvas.addEventListener("keydown", (e) => {
     const k = keyMap[e.key] || e.key.toLowerCase();
 
     if (preventDefaultKeys.includes(k)) {
@@ -1578,12 +1564,12 @@ function appInit(gconf = {}) {
     }
   });
 
-  app.canvas.addEventListener("keyup", e => {
+  app.canvas.addEventListener("keyup", (e) => {
     const k = keyMap[e.key] || e.key.toLowerCase();
     app.keyStates[k] = "released";
   });
 
-  app.canvas.addEventListener("touchstart", e => {
+  app.canvas.addEventListener("touchstart", (e) => {
     if (!gconf.touchToMouse) return;
     // disable long tap context menu
     e.preventDefault();
@@ -1592,7 +1578,7 @@ function appInit(gconf = {}) {
     app.mouseState = "pressed";
   });
 
-  app.canvas.addEventListener("touchmove", e => {
+  app.canvas.addEventListener("touchmove", (e) => {
     if (!gconf.touchToMouse) return;
     // disable scrolling
     e.preventDefault();
@@ -1601,12 +1587,12 @@ function appInit(gconf = {}) {
     app.mouseMoved = true;
   });
 
-  app.canvas.addEventListener("touchend", e => {
+  app.canvas.addEventListener("touchend", (e) => {
     if (!gconf.touchToMouse) return;
     app.mouseState = "released";
   });
 
-  app.canvas.addEventListener("touchcancel", e => {
+  app.canvas.addEventListener("touchcancel", (e) => {
     if (!gconf.touchToMouse) return;
     app.mouseState = "released";
   });
@@ -1700,7 +1686,7 @@ function appInit(gconf = {}) {
   }
 
   function run(f) {
-    const frame = t => {
+    const frame = (t) => {
       const realTime = t / 1000;
       const realDt = realTime - app.realTime;
 
@@ -1769,7 +1755,7 @@ function appInit(gconf = {}) {
     focus: () => app.canvas.focus(),
     canvas: app.canvas,
     isTouch: app.isTouch,
-    scale: app.scale
+    scale: app.scale,
   };
 }
 // === 4 **APP** ===
@@ -1798,7 +1784,7 @@ function audioInit() {
     return {
       ctx,
       gainNode,
-      masterNode
+      masterNode,
     };
   })();
 
@@ -1831,7 +1817,7 @@ function audioInit() {
       volume: 1,
       speed: 1,
       detune: 0,
-      seek: 0
+      seek: 0,
     }
   ) {
     let stopped = false;
@@ -1947,7 +1933,7 @@ function audioInit() {
         } else {
           return audio.ctx.currentTime - startTime;
         }
-      }
+      },
     };
 
     handle.speed(conf.speed);
@@ -1969,7 +1955,7 @@ function audioInit() {
     ctx,
     volume,
     play,
-    burp
+    burp,
   };
 }
 // === 5 **AUDIO** ===
@@ -2009,7 +1995,7 @@ function assetsInit(gfx, audio, gconf = {}) {
     sprites: {},
     sounds: {},
     fonts: {},
-    shaders: {}
+    shaders: {},
   };
 
   function addLoader(prom) {
@@ -2049,7 +2035,7 @@ function assetsInit(gfx, audio, gconf = {}) {
     const loader = new Promise((resolve, reject) => {
       const path = isDataUrl(src) ? src : assets.loadRoot + src;
       loadImg(path)
-        .then(img => {
+        .then((img) => {
           const font = gfx.makeFont(gfx.makeTex(img), gw, gh, chars);
           assets.fonts[name] = font;
           resolve(font);
@@ -2070,7 +2056,7 @@ function assetsInit(gfx, audio, gconf = {}) {
     conf = {
       sliceX: 1,
       sliceY: 1,
-      anims: {}
+      anims: {},
     }
   ) {
     // synchronously load sprite from local pixel data
@@ -2082,7 +2068,7 @@ function assetsInit(gfx, audio, gconf = {}) {
         sliceY: 1,
         gridWidth: 0,
         gridHeight: 0,
-        anims: {}
+        anims: {},
       }
     ) {
       const frames = [];
@@ -2102,7 +2088,7 @@ function assetsInit(gfx, audio, gconf = {}) {
       const sprite = {
         tex: tex,
         frames: frames,
-        anims: conf.anims || {}
+        anims: conf.anims || {},
       };
 
       assets.sprites[name] = sprite;
@@ -2119,7 +2105,7 @@ function assetsInit(gfx, audio, gconf = {}) {
       if (typeof src === "string") {
         const path = isDataUrl(src) ? src : assets.loadRoot + src;
         loadImg(path)
-          .then(img => {
+          .then((img) => {
             resolve(loadRawSprite(name, img, conf));
           })
           .catch(reject);
@@ -2148,7 +2134,7 @@ function assetsInit(gfx, audio, gconf = {}) {
       function resolveUrl(url) {
         return url
           ? fetch(assets.loadRoot + url)
-              .then(r => {
+              .then((r) => {
                 if (r.ok) {
                   return r.text();
                 } else {
@@ -2156,7 +2142,7 @@ function assetsInit(gfx, audio, gconf = {}) {
                 }
               })
               .catch(reject)
-          : new Promise(r => r(null));
+          : new Promise((r) => r(null));
       }
 
       if (isUrl) {
@@ -2192,19 +2178,19 @@ function assetsInit(gfx, audio, gconf = {}) {
       // from url
       if (typeof src === "string") {
         fetch(url)
-          .then(res => {
+          .then((res) => {
             if (res.ok) {
               return res.arrayBuffer();
             } else {
               throw new Error(`failed to load ${url}`);
             }
           })
-          .then(data => {
+          .then((data) => {
             return new Promise((resolve2, reject2) => {
               audio.ctx().decodeAudioData(data, resolve2, reject2);
             });
           })
-          .then(buf => {
+          .then((buf) => {
             assets.sounds[name] = buf;
             resolve(buf);
           })
@@ -2238,7 +2224,7 @@ function assetsInit(gfx, audio, gconf = {}) {
     sprites: assets.sprites,
     fonts: assets.fonts,
     sounds: assets.sounds,
-    shaders: assets.shaders
+    shaders: assets.shaders,
   };
 }
 
@@ -2251,7 +2237,7 @@ function loggerInit(
   gfx,
   assets,
   conf = {
-    max: 8
+    max: 8,
   }
 ) {
   let logs = [];
@@ -2285,12 +2271,12 @@ function loggerInit(
         origin: "botleft",
         color: col,
         size: LOG_SIZE / gfx.scale(),
-        width: gfx.width()
+        width: gfx.width(),
       });
 
       gfx.drawRect(pos, ftext.width, ftext.height, {
         origin: "botleft",
-        color: rgba(0, 0, 0, bgAlpha)
+        color: rgba(0, 0, 0, bgAlpha),
       });
 
       gfx.drawFmtText(ftext);
@@ -2302,14 +2288,14 @@ function loggerInit(
     console.error(msg);
     logs.unshift({
       type: "error",
-      msg: msg
+      msg: msg,
     });
   }
 
   function info(msg) {
     logs.unshift({
       type: "info",
-      msg: msg
+      msg: msg,
     });
   }
 
@@ -2321,7 +2307,7 @@ function loggerInit(
     info,
     error,
     draw,
-    clear
+    clear,
   };
 }
 // === 6 **LOGGER** ===
@@ -2355,7 +2341,7 @@ function netInit(url) {
           reject(`failed to connect to ${url}`);
         };
 
-        ws.onmessage = e => {
+        ws.onmessage = (e) => {
           const msg = JSON.parse(e.data);
           if (handlers[msg.type]) {
             for (const handler of handlers[msg.type]) {
@@ -2377,7 +2363,7 @@ function netInit(url) {
   function send(type, data) {
     const msg = JSON.stringify({
       type: type,
-      data: data
+      data: data,
     });
     if (socket) {
       socket.send(msg);
@@ -2397,7 +2383,7 @@ function netInit(url) {
     close,
     connected,
     recv,
-    send
+    send,
   };
 }
 // === 7 **NET** ===
@@ -2431,47 +2417,65 @@ const kaboom = (
     canvas: null,
     connect: null,
     logMax: 8,
-    root: document.body
+    root: document.body,
   }
 ) => {
   // CUSTOM CODE ===
   let state = {
-    components: {}
+    components: {},
   };
   const reg_comp = (id, comps) => {
     if (comps) {
       let firstComp = comps[0];
       if (Array.isArray(firstComp)) {
-        let calculatedComps = comps.map(comp => {
+        let calculatedComps = comps.map((comp) => {
           if (!Array.isArray(comp)) {
             return comp;
           }
           const [key, prop, propB] = comp;
           switch (key) {
             case "sprite":
+              if (propB) {
+                return sprite(prop, propB);
+              }
               return sprite(prop);
             case "pos":
-              return pos(prop[0], prop[1]);
+              return pos(prop, propB);
             case "scale":
+              if (propB) {
+                return scale(prop, propB);
+              }
               return scale(prop);
+            case "layer":
+              return layer(prop);
             case "text":
               return text(prop, propB);
             case "body":
+              if (prop) {
+                return body(prop);
+              }
+              // console.log("PROP", prop);
+              // console.log("PROP", body());
               return body();
             case "solid":
               return solid();
+            case "gravity":
+              return gravity(prop);
             default:
               return {};
           }
         });
 
+        if (id === "player") {
+          state.components[id] = add(calculatedComps, "PLAYER");
+        }
         state.components[id] = add(calculatedComps);
       } else {
         const comp = add(comps);
         state.components[id] = comp;
       }
     } else {
-      let calculatedComps = id.map(comp => {
+      let calculatedComps = id.map((comp) => {
         if (!Array.isArray(comp)) {
           return comp;
         } else {
@@ -2491,7 +2495,7 @@ const kaboom = (
         }
       });
 
-      console.log("calculatedComps", calculatedComps);
+      // console.log("calculatedComps", calculatedComps);
 
       return add(calculatedComps);
     }
@@ -2517,24 +2521,24 @@ const kaboom = (
     crisp: gconf.crisp,
     canvas: gconf.canvas,
     root: gconf.root,
-    touchToMouse: gconf.touchToMouse ? gconf.touchToMouse : true
+    touchToMouse: gconf.touchToMouse ? gconf.touchToMouse : true,
   });
 
   const gfx = gfxInit(app.gl, {
     clearColor: gconf.clearColor ? rgba(gconf.clearColor) : undefined,
     scale: gconf.scale,
-    texFilter: gconf.texFilter
+    texFilter: gconf.texFilter,
   });
 
   const audio = audioInit();
   const assets = assetsInit(gfx, audio, {
-    errHandler: err => {
+    errHandler: (err) => {
       logger.error(err);
-    }
+    },
   });
 
   const logger = loggerInit(gfx, assets, {
-    max: gconf.logMax
+    max: gconf.logMax,
   });
 
   const net = gconf.connect ? netInit(gconf.connect) : null;
@@ -2543,7 +2547,7 @@ const kaboom = (
     AddObj: "ADD_OBJ",
     UpdateObj: "UPDATE_OBJ",
     DestroyObj: "DESTROY_OBJ",
-    Disconnect: "DISCONNECT"
+    Disconnect: "DISCONNECT",
   };
 
   function sync(obj) {
@@ -2615,7 +2619,7 @@ const kaboom = (
       new AudioBuffer({
         length: 1,
         numberOfChannels: 1,
-        sampleRate: 44100
+        sampleRate: 44100,
       })
     );
     ready(() => {
@@ -2657,7 +2661,7 @@ const kaboom = (
     const q = spr.frames[conf.frame ? conf.frame : 0];
     gfx.drawTexture(spr.tex, {
       ...conf,
-      quad: q.scale(conf.quad || quad(0, 0, 1, 1))
+      quad: q.scale(conf.quad || quad(0, 0, 1, 1)),
     });
   }
 
@@ -2694,7 +2698,7 @@ const kaboom = (
       pos: vec2(gfx.width() / 2, gfx.height() / 2),
       scale: vec2(1, 1),
       angle: 0,
-      shake: 0
+      shake: 0,
     },
 
     camMousePos: app.mousePos(),
@@ -2719,11 +2723,11 @@ const kaboom = (
 
     trigger(ev, ...args) {
       if (this.events[ev]) {
-        this.events[ev].forEach(cb => cb(...args));
+        this.events[ev].forEach((cb) => cb(...args));
       }
     },
 
-    scenes: {}
+    scenes: {},
   };
 
   function layers(list, def) {
@@ -2731,7 +2735,7 @@ const kaboom = (
       game.layers[name] = {
         alpha: 1,
         order: idx + 1,
-        noCam: false
+        noCam: false,
       };
     });
 
@@ -2766,7 +2770,7 @@ const kaboom = (
   }
 
   function camIgnore(layers) {
-    layers.forEach(name => {
+    layers.forEach((name) => {
       if (game.layers[name]) {
         game.layers[name].noCam = true;
       }
@@ -2779,11 +2783,11 @@ const kaboom = (
     "update",
     "draw",
     "destroy",
-    "inspect"
+    "inspect",
   ]);
 
   // TODO: make tags also comp?
-  function add(comps) {
+  function add(comps, tag = null) {
     const compStates = {};
     const customState = {};
     const events = {};
@@ -2854,7 +2858,7 @@ const kaboom = (
                 } else {
                   customState[k] = val;
                 }
-              }
+              },
             });
           }
         }
@@ -2898,13 +2902,13 @@ const kaboom = (
 
       trigger(ev, ...args) {
         if (events[ev]) {
-          events[ev].forEach(cb => cb.call(this, ...args));
+          events[ev].forEach((cb) => cb.call(this, ...args));
         }
 
         const gEvents = game.objEvents[ev];
 
         if (gEvents) {
-          gEvents.forEach(e => {
+          gEvents.forEach((e) => {
             if (this.is(e.tag)) {
               e.cb(this, ...args);
             }
@@ -2930,16 +2934,24 @@ const kaboom = (
 
         return {
           tags: tags,
-          info: info
+          info: info,
         };
       },
 
       destroy() {
         destroy(this);
-      }
+      },
     };
 
+    // console.log("OBJ", obj);
+
+    // let loopID = 0;
     for (const comp of comps) {
+      // if (tag) {
+      //   console.log(`LOGGED: ${loopID}`, obj);
+      // }
+
+      // loopID++;
       obj.use(comp);
     }
 
@@ -2980,7 +2992,7 @@ const kaboom = (
     }
     return game.objEvents[event].pushd({
       tag: tag,
-      cb: cb
+      cb: cb,
     });
   }
 
@@ -3004,8 +3016,8 @@ const kaboom = (
 
   // add an event that runs with objs with t1 collides with objs with t2
   function collides(t1, t2, f) {
-    return action(t1, o1 => {
-      o1._checkCollisions(t2, o2 => {
+    return action(t1, (o1) => {
+      o1._checkCollisions(t2, (o2) => {
         f(o1, o2);
       });
     });
@@ -3013,8 +3025,8 @@ const kaboom = (
 
   // add an event that runs with objs with t1 overlaps with objs with t2
   function overlaps(t1, t2, f) {
-    return action(t1, o1 => {
-      o1._checkOverlaps(t2, o2 => {
+    return action(t1, (o1) => {
+      o1._checkOverlaps(t2, (o2) => {
         f(o1, o2);
       });
     });
@@ -3022,7 +3034,7 @@ const kaboom = (
 
   // add an event that runs when objs with tag t is clicked
   function clicks(t, f) {
-    return action(t, o => {
+    return action(t, (o) => {
       if (o.isClicked()) {
         f(o);
       }
@@ -3031,7 +3043,7 @@ const kaboom = (
 
   // add an event that'd be run after t
   function wait(t, f) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       game.timers.push({
         time: t,
         cb: () => {
@@ -3039,7 +3051,7 @@ const kaboom = (
             f();
           }
           resolve();
-        }
+        },
       });
     });
   }
@@ -3064,8 +3076,8 @@ const kaboom = (
   // input callbacks
   function keyDownPvt(k, f) {
     if (Array.isArray(k)) {
-      const cancellers = k.map(key => keyDown(key, f));
-      return () => cancellers.forEach(cb => cb());
+      const cancellers = k.map((key) => keyDown(key, f));
+      return () => cancellers.forEach((cb) => cb());
     } else {
       return game.on("input", () => app.keyDown(k) && f());
     }
@@ -3077,8 +3089,8 @@ const kaboom = (
 
   function keyPress(k, f) {
     if (Array.isArray(k)) {
-      const cancellers = k.map(key => keyPress(key, f));
-      return () => cancellers.forEach(cb => cb());
+      const cancellers = k.map((key) => keyPress(key, f));
+      return () => cancellers.forEach((cb) => cb());
     } else {
       return game.on("input", () => app.keyPressed(k) && f());
     }
@@ -3086,8 +3098,8 @@ const kaboom = (
 
   function keyPressRep(k, f) {
     if (Array.isArray(k)) {
-      const cancellers = k.map(key => keyPressRep(key, f));
-      return () => cancellers.forEach(cb => cb());
+      const cancellers = k.map((key) => keyPressRep(key, f));
+      return () => cancellers.forEach((cb) => cb());
     } else {
       return game.on("input", () => app.keyPressedRep(k) && f());
     }
@@ -3095,8 +3107,8 @@ const kaboom = (
 
   function keyRelease(k, f) {
     if (Array.isArray(k)) {
-      const cancellers = k.map(key => keyRelease(key, f));
-      return () => cancellers.forEach(cb => cb());
+      const cancellers = k.map((key) => keyRelease(key, f));
+      return () => cancellers.forEach((cb) => cb());
     } else {
       return game.on("input", () => app.keyReleased(k) && f());
     }
@@ -3124,12 +3136,12 @@ const kaboom = (
   }
 
   function charInput(f) {
-    return game.on("input", () => app.charInputted().forEach(ch => f(ch)));
+    return game.on("input", () => app.charInputted().forEach((ch) => f(ch)));
   }
 
   // TODO
-  app.canvas.addEventListener("touchstart", e => {
-    [...e.changedTouches].forEach(t => {
+  app.canvas.addEventListener("touchstart", (e) => {
+    [...e.changedTouches].forEach((t) => {
       game.trigger(
         "touchStart",
         t.identifier,
@@ -3138,8 +3150,8 @@ const kaboom = (
     });
   });
 
-  app.canvas.addEventListener("touchmove", e => {
-    [...e.changedTouches].forEach(t => {
+  app.canvas.addEventListener("touchmove", (e) => {
+    [...e.changedTouches].forEach((t) => {
       game.trigger(
         "touchMove",
         t.identifier,
@@ -3148,8 +3160,8 @@ const kaboom = (
     });
   });
 
-  app.canvas.addEventListener("touchmove", e => {
-    [...e.changedTouches].forEach(t => {
+  app.canvas.addEventListener("touchmove", (e) => {
+    [...e.changedTouches].forEach((t) => {
       game.trigger(
         "touchEnd",
         t.identifier,
@@ -3190,7 +3202,7 @@ const kaboom = (
     if (!t) {
       return objs;
     } else {
-      return objs.filter(obj => obj.is(t));
+      return objs.filter((obj) => obj.is(t));
     }
   }
 
@@ -3206,13 +3218,9 @@ const kaboom = (
   // every but in reverse order
   function revery(t, f) {
     if (typeof t === "function" && f === undefined) {
-      return get()
-        .reverse()
-        .map(t);
+      return get().reverse().map(t);
     } else if (typeof t === "string") {
-      return get(t)
-        .reverse()
-        .map(f);
+      return get(t).reverse().map(f);
     }
   }
 
@@ -3229,7 +3237,7 @@ const kaboom = (
 
   // destroy all obj with the tag
   function destroyAll(t) {
-    every(t, obj => {
+    every(t, (obj) => {
       destroy(obj);
     });
   }
@@ -3261,14 +3269,14 @@ const kaboom = (
     }
 
     // update every obj
-    revery(obj => {
+    revery((obj) => {
       if (!obj.paused && doUpdate) {
         obj.trigger("update");
       }
     });
 
     if (doUpdate) {
-      game.actions.forEach(a => a());
+      game.actions.forEach((a) => a());
     }
 
     // calculate camera matrix
@@ -3282,15 +3290,10 @@ const kaboom = (
       .scale(cam.scale)
       .rotateZ(cam.angle)
       .translate(size.scale(-0.5))
-      .translate(
-        cam.pos
-          .scale(-1)
-          .add(size.scale(0.5))
-          .add(shake)
-      );
+      .translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake));
 
     // draw every obj
-    every(obj => {
+    every((obj) => {
       if (!obj.hidden) {
         gfx.pushTransform();
 
@@ -3303,7 +3306,7 @@ const kaboom = (
       }
     });
 
-    game.renders.forEach(r => r());
+    game.renders.forEach((r) => r());
   }
 
   function drawInspect() {
@@ -3316,11 +3319,11 @@ const kaboom = (
 
       const ftxt = gfx.fmtText(txt, font, {
         size: 12 / scale,
-        pos: pos.add(vec2(pad.x, pad.y))
+        pos: pos.add(vec2(pad.x, pad.y)),
       });
 
       gfx.drawRect(pos, ftxt.width + pad.x * 2, ftxt.height + pad.x * 2, {
-        color: rgba(0, 0, 0, 1)
+        color: rgba(0, 0, 0, 1),
       });
 
       gfx.drawFmtText(ftxt);
@@ -3340,7 +3343,7 @@ const kaboom = (
       }
     }
 
-    revery(obj => {
+    revery((obj) => {
       if (!obj.area) {
         return;
       }
@@ -3349,7 +3352,7 @@ const kaboom = (
         return;
       }
 
-      drawObj(obj, scale => {
+      drawObj(obj, (scale) => {
         if (!inspecting) {
           if (obj.isHovered()) {
             inspecting = obj;
@@ -3363,13 +3366,13 @@ const kaboom = (
 
         gfx.drawRectStroke(a.p1, w, h, {
           width: lwidth,
-          color: lcolor
+          color: lcolor,
         });
       });
     });
 
     if (inspecting) {
-      drawObj(inspecting, scale => {
+      drawObj(inspecting, (scale) => {
         const mpos = mousePos(inspecting.layer);
         const lines = [];
         const data = inspecting._inspect();
@@ -3393,12 +3396,12 @@ const kaboom = (
 
   // TODO: have velocity here?
   function pos(...args) {
-    return {
+    var p = {
       id: "pos",
       pos: vec2(...args),
 
       // TODO: check physics here?
-      move(...args) {
+      move(_, ...args) {
         const p = vec2(...args);
         const dx = p.x * dt();
         const dy = p.y * dt();
@@ -3413,10 +3416,14 @@ const kaboom = (
 
       inspect() {
         return {
-          pos: `(${~~this.pos.x}, ${~~this.pos.y})`
+          pos: `(${~~this.pos.x}, ${~~this.pos.y})`,
         };
-      }
+      },
     };
+
+    // console.log("POS", p);
+
+    return p;
   }
 
   // TODO: allow single number assignment
@@ -3426,28 +3433,28 @@ const kaboom = (
     }
     return {
       id: "scale",
-      scale: vec2(...args)
+      scale: vec2(...args),
     };
   }
 
   function rotate(r) {
     return {
       id: "rotate",
-      angle: r ? r : 0
+      angle: r ? r : 0,
     };
   }
 
   function color(...args) {
     return {
       id: "color",
-      color: rgba(...args)
+      color: rgba(...args),
     };
   }
 
   function origin(o) {
     return {
       id: "origin",
-      origin: o
+      origin: o,
     };
   }
 
@@ -3457,9 +3464,9 @@ const kaboom = (
       layer: l,
       inspect() {
         return {
-          layer: this.layer ? this.layer : game.defLayer
+          layer: this.layer ? this.layer : game.defLayer,
         };
-      }
+      },
     };
   }
 
@@ -3482,7 +3489,7 @@ const kaboom = (
 
       area: {
         p1: p1,
-        p2: p2
+        p2: p2,
       },
 
       areaWidth() {
@@ -3507,7 +3514,7 @@ const kaboom = (
         }
       },
 
-      isCollided(other) {
+      isCollided(_, other) {
         if (!other.area) {
           return false;
         }
@@ -3522,7 +3529,7 @@ const kaboom = (
         return colRectRect(a1, a2);
       },
 
-      isOverlapped(other) {
+      isOverlapped(_, other) {
         if (!other.area) {
           return false;
         }
@@ -3537,7 +3544,7 @@ const kaboom = (
         return overlapRectRect(a1, a2);
       },
 
-      clicks(f) {
+      clicks(_, f) {
         this.action(() => {
           if (this.isClicked()) {
             f();
@@ -3545,7 +3552,7 @@ const kaboom = (
         });
       },
 
-      hovers(f) {
+      hovers(_, f) {
         this.action(() => {
           if (this.isHovered()) {
             f();
@@ -3553,24 +3560,24 @@ const kaboom = (
         });
       },
 
-      collides(tag, f) {
+      collides(_, tag, f) {
         this.action(() => {
           this._checkCollisions(tag, f);
         });
       },
 
-      overlaps(tag, f) {
+      overlaps(_, tag, f) {
         this.action(() => {
           this._checkOverlaps(tag, f);
         });
       },
 
-      hasPt(pt) {
+      hasPt(_, pt) {
         const a = this._worldArea();
         return colRectPt(
           {
             p1: a.p1,
-            p2: a.p2
+            p2: a.p2,
           },
           pt
         );
@@ -3578,7 +3585,7 @@ const kaboom = (
 
       // TODO: make overlap events still trigger
       // push an obj out of another if they're overlapped
-      pushOut(obj) {
+      pushOut(_, obj) {
         if (obj === this) {
           return null;
         }
@@ -3611,28 +3618,28 @@ const kaboom = (
             return {
               obj: obj,
               side: "right",
-              dis: -disLeft
+              dis: -disLeft,
             };
           case disRight:
             this.pos.x += disRight;
             return {
               obj: obj,
               side: "left",
-              dis: disRight
+              dis: disRight,
             };
           case disTop:
             this.pos.y -= disTop;
             return {
               obj: obj,
               side: "bottom",
-              dis: -disTop
+              dis: -disTop,
             };
           case disBottom:
             this.pos.y += disBottom;
             return {
               obj: obj,
               side: "top",
-              dis: disBottom
+              dis: disBottom,
             };
         }
 
@@ -3641,13 +3648,13 @@ const kaboom = (
 
       // push object out of other solid objects
       pushOutAll() {
-        return every(
-          other => (other.solid ? this.pushOut(other) : null)
-        ).filter(res => res != null);
+        return every((other) =>
+          other.solid ? this.pushOut(other) : null
+        ).filter((res) => res != null);
       },
 
-      _checkCollisions(tag, f) {
-        every(tag, obj => {
+      _checkCollisions(_, tag, f) {
+        every(tag, (obj) => {
           if (this === obj) {
             return;
           }
@@ -3669,8 +3676,8 @@ const kaboom = (
       },
 
       // TODO: repetitive with collides
-      _checkOverlaps(tag, f) {
-        every(tag, obj => {
+      _checkOverlaps(_, tag, f) {
+        every(tag, (obj) => {
           if (this === obj) {
             return;
           }
@@ -3702,11 +3709,11 @@ const kaboom = (
 
         const area = {
           p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
-          p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y))
+          p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
         };
 
         return area;
-      }
+      },
     };
   }
 
@@ -3792,7 +3799,7 @@ const kaboom = (
           flipY: conf.flipY,
           tiled: conf.tiled,
           width: conf.width,
-          height: conf.height
+          height: conf.height,
         });
       },
 
@@ -3843,7 +3850,7 @@ const kaboom = (
         curAnim = {
           name: name,
           loop: loop,
-          timer: 0
+          timer: 0,
         };
 
         this.frame = anim.from;
@@ -3918,7 +3925,7 @@ const kaboom = (
           info.curAnim = `"${curAnim.name}"`;
         }
         return info;
-      }
+      },
     };
   }
 
@@ -3949,7 +3956,7 @@ const kaboom = (
             size: this.textSize,
             origin: this.origin,
             color: this.color,
-            width: conf.width
+            width: conf.width,
           });
           this.width = ftext.width / ((this.scale && this.scale.x) || 1);
           this.height = ftext.height / ((this.scale && this.scale.y) || 1);
@@ -3967,14 +3974,14 @@ const kaboom = (
           size: this.textSize,
           origin: this.origin,
           color: this.color,
-          width: conf.width
+          width: conf.width,
         });
 
         this.width = ftext.width;
         this.height = ftext.height;
 
         gfx.drawFmtText(ftext);
-      }
+      },
     };
   }
 
@@ -3998,16 +4005,16 @@ const kaboom = (
           color: this.color,
           origin: this.origin,
           prog: assets.shaders[this.shader],
-          uniform: this.uniform
+          uniform: this.uniform,
         });
-      }
+      },
     };
   }
 
   function solid() {
     return {
       id: "solid",
-      solid: true
+      solid: true,
     };
   }
 
@@ -4016,16 +4023,19 @@ const kaboom = (
   const DEF_JUMP_FORCE = 480;
 
   function body(conf = {}) {
+    console.log("GETS ADDED");
     let velY = 0;
     let curPlatform = null;
     let lastPlatformPos = null;
     const maxVel = conf.maxVel ? conf.maxVel : DEF_MAX_VEL;
 
+    console.log("THIS pos", conf);
     return {
       id: "body",
       jumpForce: conf.jumpForce ? conf.jumpForce : DEF_JUMP_FORCE,
 
       update() {
+        // console.log("YO", this.pos);
         this.move(0, velY);
 
         const targets = this.pushOutAll();
@@ -4040,6 +4050,7 @@ const kaboom = (
           } else {
             if (lastPlatformPos) {
               // sticky platform
+              console.log("POS", this.pos);
               this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos));
               lastPlatformPos = curPlatform.pos.clone();
             }
@@ -4082,7 +4093,7 @@ const kaboom = (
       jump(force) {
         curPlatform = null;
         velY = -force || -this.jumpForce;
-      }
+      },
     };
   }
 
@@ -4091,7 +4102,7 @@ const kaboom = (
     return {
       id: "shader",
       shader: id,
-      uniform: uniform
+      uniform: uniform,
     };
   }
 
@@ -4110,7 +4121,7 @@ const kaboom = (
     drawCalls: gfx.drawCalls,
     clearLog: logger.clear,
     log: logger.info,
-    error: logger.error
+    error: logger.error,
   };
 
   function gridder(level, p) {
@@ -4118,7 +4129,7 @@ const kaboom = (
       id: "gridder",
       gridPos: p.clone(),
 
-      setGridPos(p) {
+      setGridPos(_, p) {
         this.gridPos = p.clone();
         this.pos = vec2(
           level.offset().x + this.gridPos.x * level.gridWidth(),
@@ -4140,7 +4151,7 @@ const kaboom = (
 
       moveDown() {
         this.setGridPos(this.gridPos.add(vec2(0, 1)));
-      }
+      },
     };
   }
 
@@ -4211,7 +4222,7 @@ const kaboom = (
         for (const obj of objs) {
           destroy(obj);
         }
-      }
+      },
     };
 
     map.forEach((row, i) => {
@@ -4233,7 +4244,7 @@ const kaboom = (
       rotate(props.rot ? prop.rot : 0),
       scale(vec2(props.scale ? props.scale : 1)),
       color(props.color ? props.color : rgb(1, 1, 1)),
-      origin(props.origin)
+      origin(props.origin),
     ];
   }
 
@@ -4246,7 +4257,7 @@ const kaboom = (
       props.origin && origin(props.origin),
       props.data,
       ...commonProps(props),
-      ...(props.tags || [])
+      ...(props.tags || []),
     ]);
   }
 
@@ -4259,7 +4270,7 @@ const kaboom = (
       props.origin && origin(props.origin),
       props.data,
       ...commonProps(props),
-      ...(props.tags || [])
+      ...(props.tags || []),
     ]);
   }
 
@@ -4272,7 +4283,7 @@ const kaboom = (
       props.origin && origin(props.origin),
       props.data,
       ...commonProps(props),
-      ...(props.tags || [])
+      ...(props.tags || []),
     ]);
   }
 
@@ -4296,7 +4307,7 @@ const kaboom = (
         add: new IDList(),
         update: new IDList(),
         draw: new IDList(),
-        destroy: new IDList()
+        destroy: new IDList(),
       };
 
       game.actions = new IDList();
@@ -4309,7 +4320,7 @@ const kaboom = (
         pos: vec2(gfx.width() / 2, gfx.height() / 2),
         scale: vec2(1, 1),
         angle: 0,
-        shake: 0
+        shake: 0,
       };
 
       game.camMousePos = app.mousePos();
@@ -4474,7 +4485,7 @@ const kaboom = (
     // custom
     state,
     reg_comp,
-    get_comp
+    get_comp,
   };
 
   if (gconf.plugins) {
@@ -4512,7 +4523,7 @@ const kaboom = (
           vec2(w / 2, h / 2)
         );
         gfx.drawRect(vec2(0), gfx.width(), gfx.height(), {
-          color: rgb(0, 0, 0)
+          color: rgb(0, 0, 0),
         });
         gfx.drawRectStroke(pos, w, h, { width: 4 / gfx.scale() });
         gfx.drawRect(pos, w * progress, h);
