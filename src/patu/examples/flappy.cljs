@@ -53,8 +53,9 @@
 (p/reg-event
  :score/add
  (fn [_ _]
-   (let [new-score (inc (p/sub [:comp :ui/score :value]))];]
-     (-> (p/sub [:comp :ui/score])
+   (let [score (p/sub [:comp :ui/score])
+         new-score (inc (.-value score))];]
+     (-> score
          (jset! :value new-score)
          (jset! :text new-score)))))
 
@@ -68,13 +69,12 @@
  (fn [_ [_ pipe pid]]
    (let [player (p/sub [:comp pid])]
      (.move pipe (* -1 speed) 0)
-     (when (and (= (jget pipe :passed) false)
-                (<= (+ (jget-in pipe [:pos :x]) (jget pipe :width))
-                    (p/sub [:comp pid :pos :x])))
+     (when (and (= (.-passed pipe) false)
+                (<= (+ (jget-in pipe [:pos :x]) (.-width pipe))
+                    (jget-in player [:pos :x])))
        (set! pipe -passed true)
        (p/dispatch [:score/add]))
      (when (< (jget-in pipe [:pos :x])
-              ; 10)
               (/ (* -1 (p/width)) 2))
        (js/console.log "DESTROY")
        (p/dispatch [:pipe/destroy pipe])))))

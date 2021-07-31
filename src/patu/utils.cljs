@@ -29,9 +29,9 @@
 
 (defn jset!
   ""
-  ([obj key value]
-   (obj/set obj (name key) (clj->js value))
-   obj))
+  [obj key value]
+  (obj/set obj (name key) (clj->js value))
+  obj)
 
 ;;
 (defn jset-in!
