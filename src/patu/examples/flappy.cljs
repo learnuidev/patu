@@ -13,7 +13,7 @@
 ;; 1. Initialize App
 (p/dispatch-sync [:kaboom {:canvas (js/document.getElementById "app")
                            :global true
-                           :fullscreen true
+                           :fullscreen false
                            :scale 3
                            :debug true
                            :clearColor [0 0 0 1]}])
@@ -35,6 +35,7 @@
   (p/sub [:comp :player :pos :x]))
 
 ;; 3. Register Event handlers
+;; 3.1 Pipe event handlers
 (p/reg-event
  :game/spawn-pipes
  (fn [_ _]
@@ -50,7 +51,6 @@
                                 :pipe
                                 {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
 
-;;
 (p/reg-event
  :pipe/set-passed
  (fn [_ [_ pipe]]
@@ -59,7 +59,6 @@
 (p/reg-event
  :pipe/destroy
  (fn [_ [_ pipe]]
-   ; (js/console.log "iscalled" pipe)
    (.destroy pipe)))
 
 (p/reg-event
@@ -76,22 +75,6 @@
                     (jget-in player [:pos :x])))
        [:dispatch-n [[:score/add]
                      [:pipe/set-passed pipe]]]))))
-
-;;
-; (p/reg-event
-;  :pipe/handle-lifecycle
-;  (fn [_ [_ pipe pid]]
-;    (let [player (p/sub [:comp pid])]
-;      (when (p/sub [:pipe/passed? pipe player])
-;        [:dispatch-n [[:score/add]
-;                      [:pipe/set-passed pipe]]]))))
-;
-; (p/reg-sub
-;  :pipe/passed?
-;  (fn [_ [pipe player]]
-;    (and (= (.-passed pipe) false)
-;         (<= (+ (jget-in pipe [:pos :x]) (.-width pipe))
-;             (jget-in player [:pos :x])))))
 
 (comment)
   ; (p/sub [:pipe/passed?]))
@@ -113,23 +96,21 @@
 (p/reg-event
  :player/go-south
  (fn [_ [_ id]]
-   (let [player (p/sub [:comp id])
-         newy (+ 10 (p/sub [:comp id :pos :y]))]
-     (jset-in! player [:pos :y] newy))))
+   [:player {:y 10}]))
 
 (p/reg-event
  :comp/jump
  (fn [_ [_ cid]]
-   (p/dispatch-n [[:jump :player jump-force]
-                  [:audio/play  :wooosh]])))
+   [:dispatch-n [[:jump :player jump-force]
+                 [:audio/play :wooosh]]]))
 
 (p/reg-event
  :player/check-ffall
  (fn [_ [_ id]]
-   (when (> (p/sub [:comp id :pos :y]) (p/height))
-     (p/dispatch [:go :lose]))
-   (when (<= (p/sub [:comp id :pos :y]) ceiling)
-     (p/dispatch [:go :lose]))))
+   (let [pos-y (p/sub [:comp id :pos :y])]
+     (when (or (> pos-y (p/height))
+               (<= pos-y ceiling))
+       [:dispatch [:go :lose]]))))
 
 ;; 4. Scenes
 ;; ==== 4.1 Main Scene
