@@ -62,16 +62,16 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
  :game/spawn-pipes
  (fn [_ _]
    (let [h1 (p/randd pipe-min-height (- (p/height) (+ pipe-min-height pipe-open)))]
-     (p/dispatch [:comp/reg-n [[[:sprite :pipe]
-                                [:origin :botleft]
-                                [:pos [(p/width) h1]]
-                                :pipe] ;; "give it tags to easier define behaviors see below"
-                               [[:sprite :pipe]
-                                [:origin :botleft]
-                                [:scale 1 -1]
-                                [:pos [(p/width) (+ h1 pipe-open)]]
-                                :pipe
-                                {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
+     [:dispatch [:comp/reg-n [[[:sprite :pipe]
+                               [:origin :botleft]
+                               [:pos [(p/width) h1]]
+                               :pipe] ;; "give it tags to easier define behaviors see below"
+                              [[:sprite :pipe]
+                               [:origin :botleft]
+                               [:scale 1 -1]
+                               [:pos [(p/width) (+ h1 pipe-open)]]
+                               :pipe
+                               {:passed false}]]]]))) ;; "raw table just assigns every field to the game obj"
 
 (p/reg-event
  :pipe/set-passed
