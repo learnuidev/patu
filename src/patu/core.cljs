@@ -10,6 +10,7 @@
 
 ;; Event
 (def dispatch evt/dispatch)
+(def dispatch-sync evt/dispatch-sync)
 (def dispatch-n evt/dispatch-n)
 (def reg-event evt/reg-event)
 
