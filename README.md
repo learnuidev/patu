@@ -30,12 +30,12 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
 (def ceiling  -60)
 
 ;; 1. Initialize App
-(p/dispatch [:kaboom {:canvas (js/document.getElementById "app")
-                      :global true
-                      :fullscreen true
-                      :scale 3
-                      :debug true
-                      :clearColor [0 0 0 1]}])
+(p/dispatch-sync [:kaboom {:canvas (js/document.getElementById "app")
+                           :global true
+                           :fullscreen false
+                           :scale 3
+                           :debug true
+                           :clearColor [0 0 0 1]}])
 
 ;; 2. Load Assets
 (p/dispatch-n
@@ -54,6 +54,7 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
   (p/sub [:comp :player :pos :x]))
 
 ;; 3. Register Event handlers
+;; 3.1 Pipe event handlers
 (p/reg-event
  :game/spawn-pipes
  (fn [_ _]
@@ -70,12 +71,9 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
                                 {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
 
 (p/reg-event
- :score/add
- (fn [_ _]
-   (let [new-score (inc (p/sub [:comp :ui/score :value]))];]
-     (-> (p/sub [:comp :ui/score])
-         (jset! :value new-score)
-         (jset! :text new-score)))))
+ :pipe/set-passed
+ (fn [_ [_ pipe]]
+   (jset! pipe :passed true)))
 
 (p/reg-event
  :pipe/destroy
@@ -84,40 +82,54 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
 
 (p/reg-event
  :pipe/handle-lifecycle
+ (fn [_ [_ pipe]]
+   (.move pipe (p/neg speed) 0)))
+
+(p/reg-event
+ :pipe/handle-lifecycle
  (fn [_ [_ pipe pid]]
    (let [player (p/sub [:comp pid])]
-     (.move pipe (* -1 speed) 0)
-     (when (and (= (jget pipe :passed) false)
-                (<= (+ (jget-in pipe [:pos :x]) (jget pipe :width))
-                    (p/sub [:comp pid :pos :x])))
-       (set! pipe -passed true)
-       (p/dispatch [:score/add]))
-     (when (< (jget-in pipe [:pos :x])
-              ; 10)
-              (/ (* -1 (p/width)) 2))
-       (js/console.log "DESTROY")
-       (p/dispatch [:pipe/destroy pipe])))))
+     (when (and (= (.-passed pipe) false)
+                (<= (+ (jget-in pipe [:pos :x]) (.-width pipe))
+                    (jget-in player [:pos :x])))
+       [:dispatch-n [[:score/add]
+                     [:pipe/set-passed pipe]]]))))
+
+(comment)
+  ; (p/sub [:pipe/passed?]))
+(p/reg-event
+ :pipe/handle-lifecycle
+ (fn [_ [_ pipe pid]]
+   (when (< (jget-in pipe [:pos :x])
+            (/ (p/neg (p/width)) 2))
+     [:dispatch [:pipe/destroy pipe]])))
+
+;; === ui/score events
+(p/reg-event
+ :score/add
+ (fn [_ _]
+   (let [score (p/sub [:comp :ui-score :value])]
+     [:ui-score [[:value (inc score)]
+                 [:text (inc score)]]])))
 
 (p/reg-event
  :player/go-south
  (fn [_ [_ id]]
-   (let [player (p/sub [:comp id])
-         newy (+ 10 (p/sub [:comp id :pos :y]))]
-     (jset-in! player [:pos :y] newy))))
+   [:player {:y 10}]))
 
 (p/reg-event
  :comp/jump
  (fn [_ [_ cid]]
-   (p/dispatch-n [[:jump :player jump-force]
-                  [:audio/play  :wooosh]])))
+   [:dispatch-n [[:jump :player jump-force]
+                 [:audio/play :wooosh]]]))
 
 (p/reg-event
  :player/check-ffall
  (fn [_ [_ id]]
-   (when (> (p/sub [:comp id :pos :y]) (p/height))
-     (p/dispatch [:go :lose]))
-   (when (<= (p/sub [:comp id :pos :y]) ceiling)
-     (p/dispatch [:go :lose]))))
+   (let [pos-y (p/sub [:comp id :pos :y])]
+     (when (or (> pos-y (p/height))
+               (<= pos-y ceiling))
+       [:dispatch [:go :lose]]))))
 
 ;; 4. Scenes
 ;; ==== 4.1 Main Scene
@@ -133,7 +145,7 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
                [:pos (/ (p/width) 4) 120]
                [:scale 1]
                [:body]]]
-     [:ui/score [[:text "0" 16]
+     [:ui-score [[:text "0" 16]
                  [:pos 9 9]
                  [:layer :ui]
                  {:value 0}]]]]])
@@ -160,7 +172,7 @@ This is tutorial has been updated for kaboom v0.6. For v0.5 examples please see 
 (defn lose-init []
   (let [[x y] (p/center)
               ;; :value means we want .-value property from ui/score component
-        score (p/sub [:comp :ui/score :value])]
+        score (p/sub [:comp :ui-score :value])]
     [[:comp/reg-n [[[:text score 64]
                     [:pos [x y]]
                     [:origin :center]]
