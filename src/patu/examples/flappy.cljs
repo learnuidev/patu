@@ -11,12 +11,12 @@
 (def ceiling  -60)
 
 ;; 1. Initialize App
-(p/dispatch [:kaboom {:canvas (js/document.getElementById "app")
-                      :global true
-                      :fullscreen true
-                      :scale 3
-                      :debug true
-                      :clearColor [0 0 0 1]}])
+(p/dispatch-sync [:kaboom {:canvas (js/document.getElementById "app")
+                           :global true
+                           :fullscreen true
+                           :scale 3
+                           :debug true
+                           :clearColor [0 0 0 1]}])
 
 ;; 2. Load Assets
 (p/dispatch-n
@@ -50,34 +50,65 @@
                                 :pipe
                                 {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
 
+;;
 (p/reg-event
- :score/add
- (fn [_ _]
-   (let [score (p/sub [:comp :ui/score])
-         new-score (inc (.-value score))];]
-     (-> score
-         (jset! :value new-score)
-         (jset! :text new-score)))))
+ :pipe/set-passed
+ (fn [_ [_ pipe]]
+   (jset! pipe :passed true)))
 
 (p/reg-event
  :pipe/destroy
  (fn [_ [_ pipe]]
+   ; (js/console.log "iscalled" pipe)
    (.destroy pipe)))
+
+(p/reg-event
+ :pipe/handle-lifecycle
+ (fn [_ [_ pipe]]
+   (.move pipe (p/neg speed) 0)))
 
 (p/reg-event
  :pipe/handle-lifecycle
  (fn [_ [_ pipe pid]]
    (let [player (p/sub [:comp pid])]
-     (.move pipe (* -1 speed) 0)
      (when (and (= (.-passed pipe) false)
                 (<= (+ (jget-in pipe [:pos :x]) (.-width pipe))
                     (jget-in player [:pos :x])))
-       (set! pipe -passed true)
-       (p/dispatch [:score/add]))
-     (when (< (jget-in pipe [:pos :x])
-              (/ (* -1 (p/width)) 2))
-       (js/console.log "DESTROY")
-       (p/dispatch [:pipe/destroy pipe])))))
+       [:dispatch-n [[:score/add]
+                     [:pipe/set-passed pipe]]]))))
+
+;;
+; (p/reg-event
+;  :pipe/handle-lifecycle
+;  (fn [_ [_ pipe pid]]
+;    (let [player (p/sub [:comp pid])]
+;      (when (p/sub [:pipe/passed? pipe player])
+;        [:dispatch-n [[:score/add]
+;                      [:pipe/set-passed pipe]]]))))
+;
+; (p/reg-sub
+;  :pipe/passed?
+;  (fn [_ [pipe player]]
+;    (and (= (.-passed pipe) false)
+;         (<= (+ (jget-in pipe [:pos :x]) (.-width pipe))
+;             (jget-in player [:pos :x])))))
+
+(comment)
+  ; (p/sub [:pipe/passed?]))
+(p/reg-event
+ :pipe/handle-lifecycle
+ (fn [_ [_ pipe pid]]
+   (when (< (jget-in pipe [:pos :x])
+            (/ (p/neg (p/width)) 2))
+     [:dispatch [:pipe/destroy pipe]])))
+
+;; === ui/score events
+(p/reg-event
+ :score/add
+ (fn [_ _]
+   (let [score (p/sub [:comp :ui-score :value])]
+     [:ui-score [[:value (inc score)]
+                 [:text (inc score)]]])))
 
 (p/reg-event
  :player/go-south
@@ -114,7 +145,7 @@
                [:pos (/ (p/width) 4) 120]
                [:scale 1]
                [:body]]]
-     [:ui/score [[:text "0" 16]
+     [:ui-score [[:text "0" 16]
                  [:pos 9 9]
                  [:layer :ui]
                  {:value 0}]]]]])
@@ -141,7 +172,7 @@
 (defn lose-init []
   (let [[x y] (p/center)
               ;; :value means we want .-value property from ui/score component
-        score (p/sub [:comp :ui/score :value])]
+        score (p/sub [:comp :ui-score :value])]
     [[:comp/reg-n [[[:text score 64]
                     [:pos [x y]]
                     [:origin :center]]
