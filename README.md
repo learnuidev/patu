@@ -1,16 +1,10 @@
-# Patu v05
+# Patu
+
+Patu is a ClojureScript library for making 2D games. It is built on top of Kaboom.js
 
 <img width="484" alt="Screen Shot 2021-07-31 at 9 50 53 PM" src="https://user-images.githubusercontent.com/67298065/127756609-f76eadfc-7fbc-49b2-a712-88c596431bcc.png">
 
-
-
-Patu was the name of my grandmother's cow when I was little.
-
-Patu is also a ClojureScript library that helps you make games fast and fun! :)
-
-<img width="766" alt="Screen Shot 2021-07-24 at 3 34 13 PM" src="https://user-images.githubusercontent.com/43140948/126879382-1759a63d-5312-46f3-8497-f6807f0ab20b.png">
-
-It is built on top of Kaboom.js
+---
 
 ## Usage
 
@@ -154,7 +148,7 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
 
 (defn lose-action []
   [[:evt/key-press :space #(p/go :scene/main)]])
-  
+
 (p/reg-scene :scene/lose
              {:init lose-init
               :evt lose-action})
@@ -163,3 +157,5 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
 (defn app []
   (p/start :scene/main))
 ```
+
+<img width="766" alt="Screen Shot 2021-07-24 at 3 34 13 PM" src="https://user-images.githubusercontent.com/43140948/126879382-1759a63d-5312-46f3-8497-f6807f0ab20b.png">
