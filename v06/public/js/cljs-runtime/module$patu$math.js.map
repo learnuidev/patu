@@ -1,0 +1,9 @@
+{
+"version":3,
+"file":"module$patu$math.js",
+"lineCount":10,
+"mappings":"AAAAA,QAASA,wBAAK,CAACC,GAAD,EAAMC,GAAN,EAAWC,GAAX,CAAgB;AAC5B,MAAID,GAAJ,GAAUC,GAAV;AACE,WAAOH,uBAAA,CAAMC,GAAN,EAAWE,GAAX,EAAgBD,GAAhB,CAAP;AADF;AAGA,SAAOE,IAAAF,IAAA,CAASE,IAAAD,IAAA,CAASF,GAAT,EAAcC,GAAd,CAAT,EAA6BC,GAA7B,CAAP;AAJ4B;AAO9B,IAAAE,yCAAeL,uBAAf;AAPA,cAAA,IAAAM,mBAAA,EAAA;AAOA,cAAA,gBAAA,QAAA,GAAA,sCAAA;;",
+"sources":["patu/math.js"],
+"sourcesContent":["function clamp(val, min, max) {\n  if (min > max) {\n    return clamp(val, max, min);\n  }\n  return Math.min(Math.max(val, min), max);\n}\n\nexport default clamp;\n"],
+"names":["clamp","val","min","max","Math","$jscompDefaultExport","$jscomp$tmp$exports$module$name"]
+}

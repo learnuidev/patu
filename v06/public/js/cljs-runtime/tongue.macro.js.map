@@ -1,0 +1,1 @@
+{"version":3,"sources":["tongue/macro.cljc"],"mappings":"","names":[],"sourcesContent":["(ns tongue.macro\n  #?(:cljs (:require-macros tongue.macro)))\n\n#?(:clj\n(defmacro with-spec [& body]\n  (let [cljs? (boolean (:ns &env))]\n    (when-not cljs?\n      `(do ~@body)))))\n"]}

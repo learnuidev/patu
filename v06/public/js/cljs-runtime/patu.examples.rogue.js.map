@@ -1,0 +1,1 @@
+{"version":3,"sources":["patu/examples/rogue.cljs"],"mappings":";;AAEA,AAAA,AAAMA;AAAN,AACE,AAAA,AAACC","names":["patu.examples.rogue/app","cljs.core.println"],"sourcesContent":["(ns patu.examples.rogue)\n\n(defn app []\n  (println \"Rogue game\"))\n"]}
