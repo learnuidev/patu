@@ -1,0 +1,9 @@
+{
+"version":3,
+"file":"module$patu$audio.js",
+"lineCount":7,
+"mappings":"AAEAA,QAASA,wBAAI,EAAG;;AAFhB,cAIA,IAAMC,2BAAQ,CACZD,KAAAA,uBADY,CAAd;AAIA,IAAAE,0CAAeD,wBAAf;AARA,cAAA,IAAAE,oBAAA,EAAA;AAQA,cAAA,iBAAA,QAAA,GAAA,uCAAA;;",
+"sources":["patu/audio.js"],
+"sourcesContent":["import clamp from \"/patu/math.js\";\n\nfunction init() {}\n\nconst audio = {\n  init\n};\n\nexport default audio;\n"],
+"names":["init","audio","$jscompDefaultExport","$jscomp$tmp$exports$module$name"]
+}

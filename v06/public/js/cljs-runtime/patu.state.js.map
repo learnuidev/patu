@@ -1,0 +1,1 @@
+{"version":3,"sources":["patu/state.cljs"],"mappings":";;AAGA,AAAKA,AAAM,AAAA,AAAA,AAAA,AAACC","names":["patu.state/state","cljs.core.atom"],"sourcesContent":["(ns patu.state)\n\n;; == 0. State\n(def state (atom {:k nil}))\n"]}
