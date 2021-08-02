@@ -82,8 +82,8 @@
 (p/reg-scene :scene/main {:init main-init :evt main-action})
 
 (defn app []
-  (p/start :scene/main))
-
+  #_(p/start :scene/main)
+  (p/go :scene/main))
 (comment
   (def car-state (atom {}))
   (comment

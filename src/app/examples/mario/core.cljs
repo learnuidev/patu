@@ -144,4 +144,5 @@
                                  [[:evt/key-press :space #(p/go :scene/main)]])})
 ;; 6 Start app
 (defn app []
-  (p/start :scene/main))
+  #_(p/start :scene/main)
+  (p/go :scene/main))

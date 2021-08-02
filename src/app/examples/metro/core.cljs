@@ -228,4 +228,5 @@
                                  [[:evt/key-press :space #(p/go :scene/one)]])})
 
 (defn app []
-  (p/start :scene/one))
+  #_(p/start :scene/one)
+  (p/go :scene/one))
