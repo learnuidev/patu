@@ -1,4 +1,8 @@
-# Patu
+# Patu v05
+
+<img width="484" alt="Screen Shot 2021-07-31 at 9 50 53 PM" src="https://user-images.githubusercontent.com/67298065/127756609-f76eadfc-7fbc-49b2-a712-88c596431bcc.png">
+
+
 
 Patu was the name of my grandmother's cow when I was little.
 
