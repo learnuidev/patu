@@ -117,7 +117,14 @@
                 :anims {:player/lose {:from 0 :to 7}
                         :player/run {:from 8 :to 13}
                         :player/boom {:from 16 :to 21}
-                        :player/nod {:from 24 :to 27}}})
+                        :punch {:from 24 :to 27}
+                        :player/nod {:from 40 :to 43}
+                        :jump {:from 48 :to 50}
+                        :fly {:from 56 :to 58}
+                        :impact {:from 64 :to 66}
+                        :djump {:from 72 :to 74}
+                        :read {:from 80 :to 81}
+                        :sparkle {:from 88 :to 91}}})
 
 (l/load-sprite :character/attack
                "hero/herochar_sword_attack_anim_strip_4.png"

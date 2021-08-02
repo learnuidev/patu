@@ -57,7 +57,7 @@
               (not (c/cur-anim? player :player/attack))
               (not (c/cur-anim? player :run))
               (not (c/cur-anim? player :nod)))
-     (p/play :player :player/nod))))
+     (p/play :player :player/idle))))
 
 (reg-event
  :player/process-lever
@@ -65,4 +65,4 @@
    ; (when (c/cur-anim? player :player/attack)
    (set! lever -open true)
    (p/change-sprite [lever :lever-right])))
-     ; (p/play :player :player/nod))))
+     ; (p/play :player :player/idle))))
