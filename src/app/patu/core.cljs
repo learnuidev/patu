@@ -6,6 +6,7 @@
             [goog.object :as obj]
             [app.patu.cam :as cam]
             [app.patu.state :refer [game-state]]
+            [app.patu.loaders :as l]
             ["kaboom/dist/kaboom.cjs" :as  kaboom05]))
 
 ;; === ***math** ===
@@ -74,23 +75,6 @@
 (declare dispatch-n)
 ;;
 
-(defn kaboom [config]
-  (kaboom05 (clj->js config)))
-
-(comment
-  (js/console.log kaboom))
-
-(defn init
-  "Initializes a new game:
-   Example Usage:
-   (init {:canvas })"
-  ([] (init {:global true
-             :fullscreen false
-             :scale 4
-             :debug true
-             :clearColor [0,0,0, 0.9]}))
-  ([props]
-   (swap! game-state assoc :game (kaboom props))))
 
 ;; Query =
 (defn dt []
@@ -423,12 +407,37 @@
         :on     (on-handler comp res)))))
 
 ;; Key Events
-(defmethod dispatch :key-down [[_ & handlers]]
-  (doseq [[id handler] handlers]
-    (evt/key-down id handler)))
+;;
+(defn data->fn [id data]
+  (js/console.log "DATA" data)
+  (fn []
+    (doseq [[cid props] data]
+      (if (= :dispatch cid)
+        (dispatch props)
+        (when-let [comp (get-component cid)]
+          (doseq [[k v] props]
+            (when (= k :x)
+              (set! (.. comp -pos -x) (+ (.. comp -pos -x) v)))
+            (when (= k :y)
+              (set! (.. comp -pos -y) (+ (.. comp -pos -y) v)))))))))
 
-(defmethod dispatch :key-press [[_ id handler]]
-  (evt/key-press id handler))
+(defmethod dispatch :key-down [[_ & comps]]
+  (if (keyword? (first comps))
+    (evt/key-down (first comps) (second comps))
+    (doseq [[dir handler] comps]
+      (if (or (vector? handler)
+              (map? handler))
+        (evt/key-down dir (data->fn dir handler))
+        (evt/key-down dir handler)))))
+
+(defmethod dispatch :key-press [[_ & handlers]]
+  (if (keyword? (first handlers))
+    (evt/key-press (first handlers) (second handlers))
+    (doseq [[id handler] handlers]
+      (if (or (vector? handler)
+              (map? handler))
+        (evt/key-press id (data->fn id handler))
+        (evt/key-press id handler)))))
 
 (defmethod dispatch :key-press-rep [[_ id handler]]
   (evt/key-press-rep id handler))
@@ -450,6 +459,16 @@
 
 (defmethod dispatch :mouse-release [[_ handler]]
   (.mouseRelease (:game @game-state) handler))
+
+;; Loaders ===
+(defmethod dispatch :load/root [opts]
+  (apply l/load-root (rest opts)))
+
+(defmethod dispatch :load/sprite [opts]
+  (apply l/load-sprite (rest opts)))
+
+(defmethod dispatch :load/sound [opts]
+  (apply l/load-sound (rest opts)))
 
 ;; Key Boolean Events
 (defn key-down? [id]
@@ -477,22 +496,35 @@
 
 ;; 1. Action
 (defmethod dispatch :action [[_ & handlers]]
-  (doseq [[id handler] handlers]
-    (when-let [comp (get-component id)]
+  (if (keyword? (first handlers))
+    (when-let [comp (get-component (first handlers))]
       (if (.-action comp)
-        (.action comp handler)
-        (.action (:game @game-state) (name id) handler)))))
+        (.action comp (second handlers))
+        (.action (:game @game-state) (name (first handlers)) (second handlers))))
+    (doseq [[id handler] handlers]
+      (when-let [comp (get-component id)]
+        (if (.-action comp)
+          (.action comp handler)
+          (.action (:game @game-state) (name id) handler))))))
 
 ;; 2. Render
 (defmethod dispatch :render [[_ id handler]]
   (.render (:game @game-state) (name id) handler))
 ;; 3. Collides
 (defmethod dispatch :collides [[_ & handlers]]
-  (doseq [[[id target] handler] handlers]
-    (let [comp (get-component id)]
-      (if (.-collides comp)
-        (.collides comp (name target) handler)
-        (.collides (:game @game-state) (name id) (name target) handler)))))
+  (if (keyword (first (first handlers)))
+    (let [id (first (first handlers))
+          target (second (first handlers))
+          handler (second handlers)]
+      (let [comp (get-component id)]
+        (if (.-collides comp)
+          (.collides comp (name target) handler)
+          (.collides (:game @game-state) (name id) (name target) handler))))
+    (doseq [[[id target] handler] handlers]
+      (let [comp (get-component id)]
+        (if (.-collides comp)
+          (.collides comp (name target) handler)
+          (.collides (:game @game-state) (name id) (name target) handler))))))
 ;; 4. Overlaps
 (defmethod dispatch :overlaps [[_ [id target] handler]]
   (let [comp (get-component id)]
@@ -586,3 +618,23 @@
          (change-sprite [obj sid aid anim-speed])
          (sleep #(play-anims-and-destroy obj (rest anims) (+ timer t))
                 (+ timer t)))))))
+
+;;
+;; ==== Initialization Code
+(defn kaboom [config]
+  (kaboom05 (clj->js config)))
+
+(defn init
+  "Initializes a new game:
+   Example Usage:
+   (init {:canvas })"
+  ([] (init {:global true
+             :fullscreen false
+             :scale 4
+             :debug true
+             :clearColor [0,0,0, 0.9]}))
+  ([props]
+   (swap! game-state assoc :game (kaboom props))))
+
+(defmethod dispatch :init [args]
+  (apply init (rest args)))

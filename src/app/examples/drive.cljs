@@ -21,18 +21,17 @@
          :clearColor [0 0 0 1]})
 
 ;;
-(l/load-root "https://kaboomjs.com/pub/examples/")
-(l/load-sprite :sprite/car "img/car.png"
-               {:sliceX 3
-                :anims {:move {:from 0
-                               :to 1}
-                        :idle {:from 2
-                               :to 2}}})
-;
-(l/load-sprite :sprite/sky, "img/sky.png");
-(l/load-sprite :sprite/road, "img/road.png");
-(l/load-sprite :sprite/apple, "img/apple.png");
-(l/load-sprite :sprite/pineapple, "img/pineapple.png");
+(p/dispatch-n [[:load/root "https://kaboomjs.com/pub/examples/"]
+               [:load/sprite :car "img/car.png"
+                {:sliceX 3
+                 :anims {:move {:from 0
+                                :to 1}
+                         :idle {:from 2
+                                :to 2}}}]
+               [:load/sprite :sky, "img/sky.png"];
+               [:load/sprite :road, "img/road.png"];
+               [:load/sprite :apple, "img/apple.png"];
+               [:load/sprite :pineapple, "img/pineapple.png"]]);
 
 
 ;; Constants
@@ -45,17 +44,17 @@
   [[:layers [:bg :game, :ui] :game]
    [:cam/ignore [:ui]]
    [:comp/reg-n
-    [:layer/bg [[:sprite :sprite/sky]
+    [:layer/bg [[:sprite :sky]
                 [:layer :bg]]]
-    [:bg/road [[:sprite :sprite/road]
+    [:bg/road [[:sprite :road]
                [:layer :bg]
                [:pos 0 0]
                [:prop :road]]]
-    [:bg/road2 [[:sprite :sprite/road]
+    [:bg/road2 [[:sprite :road]
                 [:layer :bg]
                 [:pos (* (p/width) 2) 0]
                 [:prop :road]]]
-    [:player [[:sprite :sprite/car]
+    [:player [[:sprite :car]
               [:pos 24 (/ (p/height) 2)]
               [:scale 1]
               [:origin :center]
@@ -96,7 +95,7 @@
 (reg-event
  :game/handle-loop
  (fn [_ _]
-   (let [comp (rand-nth [:sprite/apple :sprite/pineapple])]
+   (let [comp (rand-nth [:apple :pineapple])]
      (p/add-component! [[:sprite comp]
                         [:pos (p/width) (rand-nth (range ubound lbound))]
                         [:prop :obj]

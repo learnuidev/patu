@@ -17,17 +17,17 @@
 (def ceiling  -60)
 
 ;; 1 Game Init
-(p/init {:canvas (js/document.getElementById "app")
-         :global true
-         :scale 1
-         :debug true
-         :clearColor [0 0 0 1]})
+(p/dispatch [:init {:canvas (js/document.getElementById "app")
+                    :global true
+                    :scale 1
+                    :debug true
+                    :clearColor [0 0 0 1]}])
 
 ;; 2 Load Game Assets
-(l/load-root "https://kaboomjs.com/pub/examples/")
-(l/load-sprite :sprite/bg, "img/bg.png");
-(l/load-sprite :sprite/birdy, "img/birdy.png");
-(l/load-sprite :sprite/pipe, "img/pipe.png");
+(p/dispatch-n [[:load/root  "https://kaboomjs.com/pub/examples/"];
+               [:load/sprite :sprite/bg, "img/bg.png"];
+               [:load/sprite :sprite/birdy, "img/birdy.png"];
+               [:load/sprite :sprite/pipe, "img/pipe.png"]]);
 (l/load-sound :sound/score "sounds/score.mp3")
 (l/load-sound :sound/wooosh "sounds/wooosh.mp3")
 (l/load-sound :sound/hit "sounds/hit.mp3")
@@ -110,11 +110,12 @@
 ;; 4.2 Scene Event Handler
 (defn main-action []
   (let [score (p/get-component :ui/score)]
-    [[:key-press :space          #(dispatch [:comp/jump :player jump-force])]
-     [:loop     1               #(dispatch [:game/spawn-pipes])]
-     [:action    :player         #(dispatch [:player/check-ffall :player (.-value score)])]
-     [:action    :pipe           #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]
-     [:collides  [:player :pipe] #(dispatch [:scene/go :scene/lose (.-value score)])]]))
+    [[:key-press :space  #(dispatch [:comp/jump :player jump-force])]
+     [:loop  1  #(dispatch [:game/spawn-pipes])]
+     [:action
+      [:player         #(dispatch [:player/check-ffall :player (.-value score)])]
+      [:pipe           #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]]
+     [:collides [:player :pipe] #(dispatch [:scene/go :scene/lose (.-value score)])]]))
 
 ;; 4,3 Scene Registration
 (p/reg-scene :scene/main
