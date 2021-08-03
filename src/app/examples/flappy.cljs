@@ -3,8 +3,6 @@
    [clojure.repl :refer [doc]]
    ;; Main Libs (5) ===
    [app.patu.core :as p]
-   [app.patu.loaders :as l]                         ;; Loaders
-   [app.patu.audio :as a]                           ;; Audio
    [app.patu.components :as c]                      ;; Component Helpers
    [app.patu.events :refer [reg-event dispatch]]))    ;; Event System))
 
@@ -16,7 +14,7 @@
 (def speed  120)
 (def ceiling  -60)
 
-;; 1 Game Init
+;; 1 Initialize the game
 (p/dispatch [:init {:canvas (js/document.getElementById "app")
                     :global true
                     :scale 1
@@ -27,10 +25,10 @@
 (p/dispatch-n [[:load/root  "https://kaboomjs.com/pub/examples/"];
                [:load/sprite :sprite/bg, "img/bg.png"];
                [:load/sprite :sprite/birdy, "img/birdy.png"];
-               [:load/sprite :sprite/pipe, "img/pipe.png"]]);
-(l/load-sound :sound/score "sounds/score.mp3")
-(l/load-sound :sound/wooosh "sounds/wooosh.mp3")
-(l/load-sound :sound/hit "sounds/hit.mp3")
+               [:load/sprite :sprite/pipe, "img/pipe.png"];
+               [:load/sound :sound/score "sounds/score.mp3"]
+               [:load/sound :sound/wooosh "sounds/wooosh.mp3"]
+               [:load/sound :sound/hit "sounds/hit.mp3"]])
 
 ;; 3 Write dem event handlers (re-frame syntax)
 ;; Events ===
@@ -68,12 +66,12 @@
 
 (reg-event
  :player/check-ffall
- (fn [_ [_ id score]]
+ (fn [_ [_ id]]
    (let [player (p/get-component id)]
      (when (> (.. player -pos -y) (p/height))
-       (p/go :scene/lose score))
+       (p/go :scene/lose))
      (when (<= (.. player -pos -y) ceiling)
-       (p/go :scene/lose score)))))
+       (p/go :scene/lose)))))
 
 (reg-event
  :scene/go
@@ -83,9 +81,9 @@
 (reg-event
  :comp/jump
  (fn [_ [_ cid force]]
-   (let [player (p/get-component cid)]
-     (c/jump! player force)
-     (a/play :sound/wooosh))))
+   (p/dispatch-n
+    [[:jump cid force]
+     [:audio/play :sound/wooosh]])))
 
 ;; 4. A Scenes --- Main Scene - 4.1 Scene Init Function
 (defn main-init []
@@ -108,39 +106,34 @@
                 [:prop {:value  0}]]]]])
 
 ;; 4.2 Scene Event Handler
-(defn main-action []
-  (let [score (p/get-component :ui/score)]
-    [[:key-press :space  #(dispatch [:comp/jump :player jump-force])]
-     [:loop  1  #(dispatch [:game/spawn-pipes])]
-     [:action
-      [:player         #(dispatch [:player/check-ffall :player (.-value score)])]
-      [:pipe           #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]]
-     [:collides [:player :pipe] #(dispatch [:scene/go :scene/lose (.-value score)])]]))
-
-;; 4,3 Scene Registration
-(p/reg-scene :scene/main
-             {:init main-init
-              :evt main-action})
+(defn main-evt []
+  [[:key-press :space  #(dispatch [:comp/jump :player jump-force])]
+   [:loop  1           #(dispatch [:game/spawn-pipes])]
+   [:action
+    [:player         #(dispatch [:player/check-ffall :player])]
+    [:pipe           #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]]
+   [:collides [:player :pipe] #(dispatch [:scene/go :scene/lose])]])
 
 ;; 4. B Lose Scene ===
-(defn lose-init [score]
-  (let [[x y] (p/center)]
+(defn lose-init []
+  (let [[x y] (p/center)
+        score (p/get-component :ui/score)]
     [[:comp/reg-n
-      [:ui/score-board [[:text score 64]
+      [:ui/score-board [[:text (.-value score) 64]
                         [:pos x y]
                         [:origin :center]]]
       [:ui/score-board [[:text "Press space to restart" 16]
                         [:pos x (+ y 50)]
                         [:origin :center]]]]]))
 
-(defn lose-action []
+(defn lose-evt []
   [[:key-press :space #(p/go :scene/main)]])
 
-(p/reg-scene :scene/lose
-             {:init lose-init
-              :evt lose-action})
+;; 4,3 Scene Registration
+(p/dispatch-n
+ [[:reg-scene :scene/main main-init main-evt]
+  [:reg-scene :scene/lose lose-init lose-evt]])
 
 ;; 5 Start App
 (defn app []
-  (p/start :scene/main))
-  ; (p/go :scene/main))
+  (p/dispatch [:start :scene/main]))

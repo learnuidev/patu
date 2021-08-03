@@ -1,9 +1,0 @@
-{
-"version":3,
-"file":"module$app$SampleComponent.js",
-"lineCount":10,
-"mappings":"A;AAEAA,QAASA,wCAAW,EAAG;AACrBC,SAAAC,IAAA,CAAY,SAAZ,CAAA;AADqB;AAIhBC,QAASA,mCAAM,EAAG;AACvB,SAAOC,+BAAAA,QAAAC,cAAA,CAAoB,QAApB,EAA8B,CAAEC,QAASN,uCAAX,CAA9B,EAAwD,UAAxD,CAAP;AADuB;AANzB,cAAA,IAAAO,6BAAA,EAAA;AAMgBJ,cAAAA,0BAAAA,OAAAA,GAAAA,kCAAAA;;",
-"sources":["app/SampleComponent.js"],
-"sourcesContent":["import React from \"/node_modules/react/index.js\";\n\nfunction handleClick() {\n  console.log(\"Clicked\");\n}\n\nexport function Button() {\n  return React.createElement(\"button\", { onClick: handleClick }, \"Click Me\");\n}\n"],
-"names":["handleClick","console","log","Button","React","createElement","onClick","$jscomp$tmp$exports$module$name"]
-}

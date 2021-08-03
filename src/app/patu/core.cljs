@@ -3,11 +3,15 @@
             [app.patu.utils :refer [js-get]]
             [app.patu.lib :as lib]
             [app.patu.events :as evt]
+            [app.patu.audio :as a]
             [goog.object :as obj]
             [app.patu.cam :as cam]
             [app.patu.state :refer [game-state]]
             [app.patu.loaders :as l]
             ["kaboom/dist/kaboom.cjs" :as  kaboom05]))
+
+(defmulti dispatch (fn [args] (nth args 0)))
+(defmulti create-component (fn [_ type props] type))
 
 ;; === ***math** ===
 (defn vec2
@@ -147,6 +151,16 @@
 
     (scene (:game @game-state) id handler)))
 
+;;
+; (reg-event
+;  :reg-scene
+;  (fn [_ [_ id init evt]]
+;    (reg-scene  id {:init init :evt evt})))
+
+
+(defmethod dispatch :reg-scene [[_ id init evt]]
+  (reg-scene  id {:init init :evt evt}))
+
 (defn start! [game scene-id]
   (.start game (name scene-id)))
 
@@ -158,6 +172,8 @@
     (.start (:game @game-state) (name id))
     (.go (:game @game-state) (name id))))
 
+(defmethod dispatch :start [[_ id]]
+  (start id))
 (defn respawn [comp val]
   (if (number? val)
     (set! comp -pos (vec2 [val val]))
@@ -236,7 +252,6 @@
 
 (defn get-level [id]
   (get-in @game-state [:game/levels id]))
-(defmulti create-component (fn [_ type props] type))
 
 (defmethod create-component :sprite [game _ [_ id opts]]
   (if opts
@@ -360,7 +375,7 @@
                 (format-for-level game (data-handler)))))
 
 ;;
-(defmulti dispatch (fn [args] (nth args 0)))
+
 (defmethod dispatch :gravity [[_ value]]
   (gravity! value))
 
@@ -543,10 +558,13 @@
 
 ;; Component Specific ===
 
-(defmethod dispatch :comp/play [[_ id tune]]
+(defmethod dispatch :anim/play [[_ id tune]]
   (let [comp (get-component id)]
     (.play comp (name tune))))
 
+(defmethod dispatch :jump [[_ cid force]]
+  (when-let [comp (get-component cid)]
+    (.jump comp force)))
 (defmethod dispatch :component/add [[_ nodes]]
   (add-component! nodes))
 (defmethod dispatch :component/add-n [[_ & nodes-coll]]
@@ -568,6 +586,10 @@
 
 (defn call [id prop]
   ((obj/get (get-component id) (name prop))))
+
+;; Audio
+(defmethod dispatch :audio/play [[_ id]]
+  (a/play id))
 
 ;; Animation
 (defn play [id anim-id]

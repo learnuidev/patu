@@ -1,1 +1,0 @@
-{"version":3,"sources":["app/kaboom_examples/zelda/core.cljs"],"mappings":";;AAEA,AAAA,AAAMA;AAAN,AACE,AAAA,AAACC","names":["app.kaboom-examples.zelda.core/app","js/console.log"],"sourcesContent":["(ns app.kaboom-examples.zelda.core)\n\n(defn app []\n  (js/console.log \"KABOOM\"))\n"]}

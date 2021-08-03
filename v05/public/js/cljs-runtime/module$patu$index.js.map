@@ -1,9 +1,0 @@
-{
-"version":3,
-"file":"module$patu$index.js",
-"lineCount":11,
-"mappings":"AACAA,QAASA,0BAAM,CAACC,KAAD,EAAQC,CAAR,CAAW;AACxB,MAAIA,CAAJ,KAAUC,SAAV;AACEF,SAAAG,SAAAC,KAAAC,MAAA,GAA4BC,IAAAC,KAAAC,MAAA,CAAgBP,CAAhB,EAAmB,CAAnB,EAAsB,CAAtB,CAA5B;AADF;AAGA,SAAOD,KAAAG,SAAAC,KAAAC,MAAP;AAJwB;AAA1B,cAOA,IAAMI,0BAAO,CAAEC,OAAQC,MAAAD,OAAV,EAAyBV,MAAAA,KAAzB,EAAgCQ,MAAOF,IAAAC,KAAAC,MAAvC,CAAb;AAEA,IAAAI,0CAAeH,uBAAf;AATA,cAAA,IAAAI,oBAAA,EAAA;AASA,cAAA,iBAAA,QAAA,GAAA,uCAAA;;",
-"sources":["patu/index.js"],
-"sourcesContent":["// AUDIO\nfunction volume(audio, v) {\n  if (v !== undefined) {\n    audio.gainNode.gain.value = goog.math.clamp(v, 0, 3);\n  }\n  return audio.gainNode.gain.value;\n}\n\nconst patu = { kaboom: window.kaboom, audio, clamp: goog.math.clamp };\n\nexport default patu;\n"],
-"names":["volume","audio","v","undefined","gainNode","gain","value","goog","math","clamp","patu","kaboom","window","$jscompDefaultExport","$jscomp$tmp$exports$module$name"]
-}

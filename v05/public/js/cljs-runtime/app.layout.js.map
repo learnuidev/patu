@@ -1,1 +1,0 @@
-{"version":3,"sources":["app/layout.cljs"],"mappings":";;AAEA,AAAA,AAAMA;AAAN,AAAA,AAAA,AAAA,AAAA,AAAA","names":["app.layout/counter"],"sourcesContent":["(ns app.layout)\n\n(defn counter []\n  [:div\n   [:h2 \"Quiz App\"]])\n"]}

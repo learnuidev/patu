@@ -1,1 +1,0 @@
-{"version":3,"sources":["patu/audio.cljs"],"mappings":";;;AAGA,AAAA,AAAMA,AAAMC;AAAZ,AACE,AAAO,AAAA,AAAA,AAAAC,AAAKC,AAAO,AAACC,AAAKH","names":["patu.audio/play","id","cljs.core/deref","patu.state/state","cljs.core/name"],"sourcesContent":["(ns patu.audio\n  (:require [patu.state :refer [state]]))\n\n(defn play [id]\n  (.play (:k @state) (name id)))\n"]}

@@ -1,1 +1,0 @@
-{"version":3,"sources":["app/kaboom/patu/state.cljs"],"mappings":";;AAEA,AAAKA,AAAW,AAAA,AAAA,AAAA,AAAA,AAAA,AAACC","names":["app.kaboom.patu.state/game-state","cljs.core.atom"],"sourcesContent":["(ns app.kaboom.patu.state)\n\n(def game-state (atom {:scenes {}\n                       :components {}}))\n"]}
