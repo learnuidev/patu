@@ -42,7 +42,7 @@
 (def speed-mod 1)
 
 (defn main-init []
-  [[:game/layers [:bg :game, :ui] :game]
+  [[:layers [:bg :game, :ui] :game]
    [:cam/ignore [:ui]]
    [:comp/reg-n
     [:layer/bg [[:sprite :sprite/sky]
@@ -135,24 +135,28 @@
         happiness (p/get-component :ui/happiness)
         score 0]
     ; (.play player "move")
-    [[:evt/key-down  :up     #(dispatch [:player/move-up :player])]
-     [:evt/key-down  :down   #(dispatch [:player/move-down :player])]
-     [:evt/key-down  :left   #(dispatch [:player/move-left :player])]
-     [:evt/key-down  :right   #(dispatch [:player/move-right :player])]
-     [:evt/key-down     :f   #(set! speed-mod 4)]
-     [:evt/key-release  :f  #(set! speed-mod  1)]
-     [:evt/key-down  :=     #(cam/zoom-in)]
-     [:evt/key-down  :-     #(cam/zoom-out)]
-     [:evt/action    :obj   #(dispatch [:obj/handle-lifecycle %])]
-     [:evt/action    :ui/happiness   #(dispatch [:happiness/set-score :ui/happiness])]
-     [:game/loop     0.6   #(dispatch [:game/handle-loop])]
-     [:comp/play     :player :move]
-     [:evt/collides  [:player :apple]    #(dispatch [:handle/apple %])]
-     [:evt/collides  [:player :pineapple]  #(dispatch [:handle/pineapple %])]]))
+    [[:comp/play     :player :move]
+     [:key-down
+      [:up     #(dispatch [:player/move-up :player])]
+      [:down   #(dispatch [:player/move-down :player])]
+      [:left   #(dispatch [:player/move-left :player])]
+      [:right   #(dispatch [:player/move-right :player])]
+      [:f   #(set! speed-mod 4)]
+      [:=     #(cam/zoom-in)]
+      [:-     #(cam/zoom-out)]]
+     [:key-release
+      [:f  #(set! speed-mod  1)]]
+     [:action
+      [:obj   #(dispatch [:obj/handle-lifecycle %])]
+      [:ui/happiness   #(dispatch [:happiness/set-score :ui/happiness])]]
+     [:loop     0.6   #(dispatch [:game/handle-loop])]
+     [:collides
+      [[:player :apple]    #(dispatch [:handle/apple %])]
+      [[:player :pineapple]  #(dispatch [:handle/pineapple %])]]]))
 ;;
 
 (p/reg-scene :scene/main {:init main-init :evt main-action})
 
 (defn app []
-  #_(p/start :scene/main)
-  (p/go :scene/main))
+  (p/start :scene/main)
+  #_(p/go :scene/main))

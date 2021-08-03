@@ -89,8 +89,8 @@
 
 ;; 4. A Scenes --- Main Scene - 4.1 Scene Init Function
 (defn main-init []
-  [[:game/gravity 1200]
-   [:game/layers [:bg :game, :ui] :game]
+  [[:gravity 1200]
+   [:layers [:bg :game, :ui] :game]
    [:cam/ignore [:ui]]
    [:comp/reg-n
     [:layer/bg [[:sprite :sprite/bg]
@@ -110,11 +110,11 @@
 ;; 4.2 Scene Event Handler
 (defn main-action []
   (let [score (p/get-component :ui/score)]
-    [[:evt/key-press :space          #(dispatch [:comp/jump :player jump-force])]
-     [:game/loop     1               #(dispatch [:game/spawn-pipes])]
-     [:evt/action    :player         #(dispatch [:player/check-ffall :player (.-value score)])]
-     [:evt/action    :pipe           #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]
-     [:evt/collides  [:player :pipe] #(dispatch [:scene/go :scene/lose (.-value score)])]]))
+    [[:key-press :space          #(dispatch [:comp/jump :player jump-force])]
+     [:loop     1               #(dispatch [:game/spawn-pipes])]
+     [:action    :player         #(dispatch [:player/check-ffall :player (.-value score)])]
+     [:action    :pipe           #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]
+     [:collides  [:player :pipe] #(dispatch [:scene/go :scene/lose (.-value score)])]]))
 
 ;; 4,3 Scene Registration
 (p/reg-scene :scene/main
@@ -122,10 +122,7 @@
               :evt main-action})
 
 ;; 4. B Lose Scene ===
-(defn lose-init []
-  [[:evt/key-press :space #(p/go :scene/main)]])
-
-(defn lose-action [score]
+(defn lose-init [score]
   (let [[x y] (p/center)]
     [[:comp/reg-n
       [:ui/score-board [[:text score 64]
@@ -134,6 +131,9 @@
       [:ui/score-board [[:text "Press space to restart" 16]
                         [:pos x (+ y 50)]
                         [:origin :center]]]]]))
+
+(defn lose-action []
+  [[:key-press :space #(p/go :scene/main)]])
 
 (p/reg-scene :scene/lose
              {:init lose-init

@@ -377,16 +377,16 @@
 
 ;;
 (defmulti dispatch (fn [args] (nth args 0)))
-(defmethod dispatch :game/gravity [[_ value]]
+(defmethod dispatch :gravity [[_ value]]
   (gravity! value))
 
 (defmethod dispatch :origin [[_ value]]
   (.origin (:game @game-state) (name value)))
 
-(defmethod dispatch :game/add-level [[_ main-map mid]]
+(defmethod dispatch :add-level [[_ main-map mid]]
   (add-level! main-map mid))
 
-(defmethod dispatch :game/layers [[_ layers main-bg]]
+(defmethod dispatch :layers [[_ layers main-bg]]
   (set-layers layers main-bg))
 
 (defmethod dispatch :cam/ignore [[_ backgrounds]]
@@ -423,30 +423,32 @@
         :on     (on-handler comp res)))))
 
 ;; Key Events
-(defmethod dispatch :evt/key-down [[_ id handler]]
-  (evt/key-down id handler))
+(defmethod dispatch :key-down [[_ & handlers]]
+  (doseq [[id handler] handlers]
+    (evt/key-down id handler)))
 
-(defmethod dispatch :evt/key-press [[_ id handler]]
+(defmethod dispatch :key-press [[_ id handler]]
   (evt/key-press id handler))
 
-(defmethod dispatch :evt/key-press-rep [[_ id handler]]
+(defmethod dispatch :key-press-rep [[_ id handler]]
   (evt/key-press-rep id handler))
 
-(defmethod dispatch :evt/key-release [[_ id handler]]
-  (evt/key-release id handler))
+(defmethod dispatch :key-release [[_ & handlers]]
+  (doseq [[id handler] handlers]
+    (evt/key-release id handler)))
 
 ;; Char
-(defmethod dispatch :evt/char-input [[_ handler]]
+(defmethod dispatch :char-input [[_ handler]]
   (.charInput (:game @game-state) handler))
 
 ;; Mouse
-(defmethod dispatch :evt/mouse-down [[_ handler]]
+(defmethod dispatch :mouse-down [[_ handler]]
   (.mouseDown (:game @game-state) handler))
 
-(defmethod dispatch :evt/mouse-click [[_ handler]]
+(defmethod dispatch :mouse-click [[_ handler]]
   (.mouseClick (:game @game-state) handler))
 
-(defmethod dispatch :evt/mouse-release [[_ handler]]
+(defmethod dispatch :mouse-release [[_ handler]]
   (.mouseRelease (:game @game-state) handler))
 
 ;; Key Boolean Events
@@ -474,35 +476,37 @@
 ;; Game Events ===
 
 ;; 1. Action
-(defmethod dispatch :evt/action [[_ id handler]]
-  (when-let [comp (get-component id)]
-    (if (.-action comp)
-      (.action comp handler)
-      (.action (:game @game-state) (name id) handler))))
+(defmethod dispatch :action [[_ & handlers]]
+  (doseq [[id handler] handlers]
+    (when-let [comp (get-component id)]
+      (if (.-action comp)
+        (.action comp handler)
+        (.action (:game @game-state) (name id) handler)))))
 
 ;; 2. Render
-(defmethod dispatch :evt/render [[_ id handler]]
+(defmethod dispatch :render [[_ id handler]]
   (.render (:game @game-state) (name id) handler))
 ;; 3. Collides
-(defmethod dispatch :evt/collides [[_ [id target] handler]]
-  (let [comp (get-component id)]
-    (if (.-collides comp)
-      (.collides comp (name target) handler)
-      (.collides (:game @game-state) (name id) (name target) handler))))
+(defmethod dispatch :collides [[_ & handlers]]
+  (doseq [[[id target] handler] handlers]
+    (let [comp (get-component id)]
+      (if (.-collides comp)
+        (.collides comp (name target) handler)
+        (.collides (:game @game-state) (name id) (name target) handler)))))
 ;; 4. Overlaps
-(defmethod dispatch :evt/overlaps [[_ [id target] handler]]
+(defmethod dispatch :overlaps [[_ [id target] handler]]
   (let [comp (get-component id)]
     (.overlaps comp (name target) handler)))
 ;; 5 on
-(defmethod dispatch :evt/on [[_ [id target] handler]]
+(defmethod dispatch :on [[_ [id target] handler]]
   (let [comp (or (get-component id) id)]
     (.on comp (name target) #(handler %))))
 
 ;; Waiting Functions
-(defmethod dispatch :game/loop [[_ id func]]
+(defmethod dispatch :loop [[_ id func]]
   (.loop (:game @game-state) id func))
 
-(defmethod dispatch :game/wait [[_ id func]]
+(defmethod dispatch :wait [[_ id func]]
   (.wait (:game @game-state) id func))
 
 ;; Component Specific ===
