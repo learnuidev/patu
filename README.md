@@ -13,15 +13,14 @@ A Flappy bird tutorial
 https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-aea7-14982c805137.mov
 
 ```clj
-(ns app.kaboom-examples.flappy
+(ns patu.examples.flappy
   (:require
    [clojure.repl :refer [doc]]
    ;; Main Libs (5) ===
-   [app.patu.core :as p]                            ;; Core
-   [app.patu.loaders :as l]                         ;; Loaders
-   [app.patu.audio :as a]                           ;; Audio
-   [app.patu.components :as c]                      ;; Component Helpers
-   [app.patu.events :refer [reg-event dispatch]]))  ;; Event System))
+   [patu.core :as p]
+   [patu.components :as c]                      ;; Component Helpers
+   [patu.events :refer [reg-event dispatch]]))    ;; Event System))
+
 
 ;; 0 Constants
 (def pipe-open  80);
@@ -30,21 +29,21 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
 (def speed  120)
 (def ceiling  -60)
 
-;; 1 Game Init
-(p/init {:canvas (js/document.getElementById "app")
-         :global true
-         :scale 2
-         :debug true
-         :clearColor [0 0 0 1]})
+;; 1 Initialize the game
+(p/dispatch [:init {:canvas (js/document.getElementById "app")
+                    :global true
+                    :scale 1
+                    :debug true
+                    :clearColor [0 0 0 1]}])
 
 ;; 2 Load Game Assets
-(l/load-root "https://kaboomjs.com/pub/examples/")
-(l/load-sprite :sprite/bg, "img/bg.png");
-(l/load-sprite :sprite/birdy, "img/birdy.png");
-(l/load-sprite :sprite/pipe, "img/pipe.png");
-(l/load-sound :sound/score "sounds/score.mp3")
-(l/load-sound :sound/wooosh "sounds/wooosh.mp3")
-(l/load-sound :sound/hit "sounds/hit.mp3")
+(p/dispatch-n [[:load/root  "https://kaboomjs.com/pub/examples/"];
+               [:load/sprite :sprite/bg, "img/bg.png"];
+               [:load/sprite :sprite/birdy, "img/birdy.png"];
+               [:load/sprite :sprite/pipe, "img/pipe.png"];
+               [:load/sound :sound/score "sounds/score.mp3"]
+               [:load/sound :sound/wooosh "sounds/wooosh.mp3"]
+               [:load/sound :sound/hit "sounds/hit.mp3"]])
 
 ;; 3 Write dem event handlers (re-frame syntax)
 ;; Events ===
@@ -82,12 +81,12 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
 
 (reg-event
  :player/check-ffall
- (fn [_ [_ id score]]
+ (fn [_ [_ id]]
    (let [player (p/get-component id)]
      (when (> (.. player -pos -y) (p/height))
-       (p/go :scene/lose score))
+       (p/go :scene/lose))
      (when (<= (.. player -pos -y) ceiling)
-       (p/go :scene/lose score)))))
+       (p/go :scene/lose)))))
 
 (reg-event
  :scene/go
@@ -97,14 +96,14 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
 (reg-event
  :comp/jump
  (fn [_ [_ cid force]]
-   (let [player (p/get-component cid)]
-     (c/jump! player force)
-     (a/play :sound/wooosh))))
+   (p/dispatch-n
+    [[:jump cid force]
+     [:audio/play :sound/wooosh]])))
 
 ;; 4. A Scenes --- Main Scene - 4.1 Scene Init Function
 (defn main-init []
-  [[:game/gravity 1200]
-   [:game/layers [:bg :game, :ui] :game]
+  [[:gravity 1200]
+   [:layers [:bg :game, :ui] :game]
    [:cam/ignore [:ui]]
    [:comp/reg-n
     [:layer/bg [[:sprite :sprite/bg]
@@ -122,40 +121,37 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
                 [:prop {:value  0}]]]]])
 
 ;; 4.2 Scene Event Handler
-(defn main-action []
-  (let [score (p/get-component :ui/score)]
-    [[:evt/key-press :space          #(dispatch [:comp/jump :player jump-force])]
-     [:game/loop     1               #(dispatch [:game/spawn-pipes])]
-     [:evt/action    :player         #(dispatch [:player/check-ffall :player (.-value score)])]
-     [:evt/action    :pipe           #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]
-     [:evt/collides  [:player :pipe] #(dispatch [:scene/go :scene/lose (.-value score)])]]))
-
-;; 4,3 Scene Registration
-(p/reg-scene :scene/main
-             {:init main-init
-              :evt main-action})
+(defn main-evt []
+  [[:key-press :space  #(dispatch [:comp/jump :player jump-force])]
+   [:loop  1           #(dispatch [:game/spawn-pipes])]
+   [:action
+    [:player         #(dispatch [:player/check-ffall :player])]
+    [:pipe           #(dispatch [:pipe/handle-lifecycle % :player :ui/score])]]
+   [:collides [:player :pipe] #(dispatch [:scene/go :scene/lose])]])
 
 ;; 4. B Lose Scene ===
-(defn lose-init [score]
-  (let [[x y] (p/center)]
+(defn lose-init []
+  (let [[x y] (p/center)
+        score (p/get-component :ui/score)]
     [[:comp/reg-n
-      [:ui/score-board [[:text score 64]
+      [:ui/score-board [[:text (.-value score) 64]
                         [:pos x y]
                         [:origin :center]]]
       [:ui/score-board [[:text "Press space to restart" 16]
                         [:pos x (+ y 50)]
                         [:origin :center]]]]]))
 
-(defn lose-action []
-  [[:evt/key-press :space #(p/go :scene/main)]])
+(defn lose-evt []
+  [[:key-press :space #(p/go :scene/main)]])
 
-(p/reg-scene :scene/lose
-             {:init lose-init
-              :evt lose-action})
+;; 4,3 Scene Registration
+(p/dispatch-n
+ [[:reg-scene :scene/main main-init main-evt]
+  [:reg-scene :scene/lose lose-init lose-evt]])
 
 ;; 5 Start App
 (defn app []
-  (p/start :scene/main))
+  (p/dispatch [:start :scene/main]))
 ```
 
 <img width="766" alt="Screen Shot 2021-07-24 at 3 34 13 PM" src="https://user-images.githubusercontent.com/43140948/126879382-1759a63d-5312-46f3-8497-f6807f0ab20b.png">
