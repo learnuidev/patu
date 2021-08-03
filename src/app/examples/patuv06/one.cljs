@@ -1,5 +1,8 @@
-(ns app.examples.patuv06.one)
+(ns app.examples.patuv06.one
+  (:require ["kaboom/dist/kaboom.cjs" :as  kab]))
 
+(comment)
+; (js/console.log kaboom!)
 (def state (atom {:components {}}))
 
 (comment
@@ -7,11 +10,11 @@
 
 (defn kaboom
   ([]
-   (let [game (js/kaboom)]
+   (let [game (kab)]
      (swap! state assoc :k game)
      game))
   ([opts]
-   (let [game (js/kaboom (clj->js opts))]
+   (let [game (kab (clj->js opts))]
      (swap! state assoc :k game)
      game)))
 
@@ -242,6 +245,6 @@
   [:left {:player {:x -10}}]
   [:right #(dispatch [:player/move-right])]])
 
-(play :player :punch)
+; (play :player :punch)
 
 (defn app [])

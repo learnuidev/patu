@@ -9,6 +9,7 @@
     "start": "npx shadow-cljs watch app"
   },
   "dependencies": {
+    "kaboom": "^0.5.1",
     "matter-js": "^0.17.1",
     "react": "16.13.0",
     "react-dom": "16.13.0"

@@ -309,6 +309,11 @@ isexe@^2.0.0:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
+kaboom@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/kaboom/-/kaboom-0.5.1.tgz#84ea681aebf89651b43f88279d94bc5ac5c28b66"
+  integrity sha512-OgNAQBquC2WQNQAKkOmDclAKJ0zDSqPMEYPF8/QOPlWt42umAO0JI3RSDlGJvg1HQcVIXUxrvPUvmjgTv6c2/A==
+
 loose-envify@^1.1.0, loose-envify@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"

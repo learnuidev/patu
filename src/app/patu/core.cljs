@@ -6,7 +6,7 @@
             [goog.object :as obj]
             [app.patu.cam :as cam]
             [app.patu.state :refer [game-state]]
-            ["/kaboom/v05.js" :default kaboom05]))
+            ["kaboom/dist/kaboom.cjs" :as  kaboom05]))
 
 ;; === ***math** ===
 (defn vec2
@@ -21,7 +21,7 @@
 (defn rgba [r g b a]
   (.rgba (:game @game-state) r g b a))
 
-(defn rand-seed [val]
+(defn rand-seed  [val]
   (.randSeed (:game @game-state) val))
 
 (defn make-rng
@@ -75,7 +75,7 @@
 ;;
 
 (defn kaboom [config]
-  (kaboom05 (clj->js config)))
+  (js/kaboom (clj->js config)))
 
 (comment
   (js/console.log kaboom))
@@ -162,6 +162,7 @@
                   (dispatch-n (evt state)))]
 
     (scene (:game @game-state) id handler)))
+
 (defn start! [game scene-id]
   (.start game (name scene-id)))
 
@@ -169,7 +170,9 @@
   "Starts a scene:
     - example usage: (start :scene/main)"
   [id]
-  (start! (:game @game-state) id))
+  (if (.-start (:game @game-state))
+    (.start (:game @game-state) (name id))
+    (.go (:game @game-state) (name id))))
 
 (defn respawn [comp val]
   (if (number? val)

@@ -141,5 +141,5 @@
 
 ;; 5 Start App
 (defn app []
-  #_(p/start :scene/main)
-  (p/go :scene/main))
+  (p/start :scene/main))
+  ; (p/go :scene/main))

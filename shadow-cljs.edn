@@ -11,5 +11,5 @@
  :builds       {:app {:target :browser
                       :modules {:main {:init-fn app.core/init}}
                       :output-dir "public/js"
-                      :asset-path "/js"
-                      :compiler-options {:output-feature :es-next}}}}
+                      :asset-path "/js"}}}
+                      ; :compiler-options {:output-feature :es-next}}}}
