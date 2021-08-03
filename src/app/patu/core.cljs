@@ -75,7 +75,7 @@
 ;;
 
 (defn kaboom [config]
-  (js/kaboom (clj->js config)))
+  (kaboom05 (clj->js config)))
 
 (comment
   (js/console.log kaboom))
