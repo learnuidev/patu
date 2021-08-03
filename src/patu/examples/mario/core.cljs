@@ -62,9 +62,9 @@
   (cam/zoom-out 10)
   (cam/zoom-in 10))
 (defn main-init []
-  [[:game/gravity 980]
-   [:game/add-level main-map :level/one]
-   [:game/layers [:background :game, :ui] :game]
+  [[:gravity 980]
+   [:add-level main-map :level/one]
+   [:layers [:background :game, :ui] :game]
    [:origin :botleft]
    [:cam/ignore [:ui]]
    [:comp/reg-n
@@ -91,38 +91,41 @@
         level (p/get-level :level/one)
         pos (.sub (.-pos player) (p/vec2 [-200 (- (.-y (.-pos player)) 30)]))]
     (cam/cam-pos pos)
-    (js/console.log "YO")
-    [[:evt/comp
+    (js/console.log "Mario")
+    [[:comp
       [:player
-       ; [:action [:cam/follow :player]]
        [:on
         [:headbump
          [:coin-surprise #(dispatch [:player/change-sprite :player :sprite/coin])]
          [:mushroom-surprise #(dispatch [:player/change-sprite :player :sprite/coin])]]]]]
-     [:evt/on  [:player :headbump]   #(js/console.log %)]
-     [:evt/key-down  :left  #(when (< 110 (.-x (.-pos player)))
-                               (c/move! player [-230 0]))]
-     [:evt/key-down  :right #(c/move! player [230 0])]
-     [:evt/key-down [:right :left] #(let [pos (.sub (.-pos player) (p/vec2 [-200 (- (.-y (.-pos player)) 30)]))]
-                                      (cam/cam-pos pos))]
-     [:evt/key-down  :up    #(cam/zoom-in)]
-     [:evt/key-down  :down  #(cam/zoom-out)]
-     [:evt/key-press :space #(c/jump! player 400)]
-     [:evt/collides  [:player :evil-mushroom]  #(p/go :scene/lose (js-get score :value))]
-     [:evt/collides  [:player :evil-mushroom]  #(dispatch [:player/change-sprite :player :sprite/evil-mushroom])]
-     [:evt/collides  [:player :mushroom-surprise] (fn []
-                                                    ; (dispatch [:player/change-sprite :player :sprite/mushroom])
-                                                    (p/call :player :biggify))]
-     [:evt/key-press :b #(p/call :player :biggify)]
-     [:evt/key-press :s #(p/call :player :smallify)]
-     [:evt/key-press :m #(p/call :player :midify)]
-     [:evt/key-press :r #(p/go :scene/main)]
-     [:evt/key-press :o #(dispatch [:player/change-sprite :player :sprite/mario])]
-     [:evt/action  :player #(when (> (.. player -pos -y) 320)
-                              (p/go :scene/lose (js-get score :value)))]
-     #_[:evt/action  :player #(when (< 140 (.-x (.-pos player)))
-                                (let [pos (.sub (.-pos player) (p/vec2 [-200 (- (.-y (.-pos player)) 30)]))]
-                                  (cam/cam-pos pos)))]]))
+     [:on  [:player :headbump]   #(js/console.log %)]
+     [:key-down
+      [:left  #(when (< 110 (.-x (.-pos player)))
+                 (c/move! player [-230 0]))]
+      [:right #(c/move! player [230 0])]
+      [[:right :left] #(let [pos (.sub (.-pos player) (p/vec2 [-200 (- (.-y (.-pos player)) 30)]))]
+                         (cam/cam-pos pos))]
+      [:up    #(cam/zoom-in)]
+      [:down  #(cam/zoom-out)]]
+     [:key-press :space #(c/jump! player 400)]
+     [:collides
+      [[:player :evil-mushroom]  #(p/go :scene/lose (js-get score :value))]
+      [[:player :evil-mushroom]  #(dispatch [:player/change-sprite :player :sprite/evil-mushroom])]
+      [[:player :mushroom-surprise] (fn []
+                                      ; (dispatch [:player/change-sprite :player :sprite/mushroom])
+                                      (p/call :player :biggify))]]
+     [:key-press
+      [:b #(p/call :player :biggify)]
+      [:s #(p/call :player :smallify)]
+      [:m #(p/call :player :midify)]
+      [:r #(p/go :scene/main)]
+      [:o #(dispatch [:player/change-sprite :player :sprite/mario])]]
+     [:action
+      [:player #(when (> (.. player -pos -y) 320)
+                  (p/go :scene/lose (js-get score :value)))]
+      #_[:player #(when (< 140 (.-x (.-pos player)))
+                    (let [pos (.sub (.-pos player) (p/vec2 [-200 (- (.-y (.-pos player)) 30)]))]
+                      (cam/cam-pos pos)))]]]))
 
 ;;
 (comment
@@ -141,8 +144,8 @@
                                       [:origin :center]
                                       [:pos [320 280]]]]]])
                           :evt (fn []
-                                 [[:evt/key-press :space #(p/go :scene/main)]])})
+                                 [[:key-press :space #(p/go :scene/main)]])})
 ;; 6 Start app
 (defn app []
-  #_(p/start :scene/main)
-  (p/go :scene/main))
+  (p/start :scene/main))
+  ; (p/go :scene/main))

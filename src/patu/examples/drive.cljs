@@ -9,29 +9,29 @@
    [patu.utils :refer [js-set! js-get]]
    [patu.components :as c]
    ;; Event System
-   [patu.events :refer [reg-event dispatch]]))
+   [patu.events :refer [reg-event dispatch dispatch-n]]))
 
-(p/init {:canvas (js/document.getElementById "app")
-         :global true
-         :width 160
-         :height 120
-         ; :fullscreen true
-         :scale 4
-         :debug true
-         :clearColor [0 0 0 1]})
+(dispatch [:init {:canvas (js/document.getElementById "app")
+                  :global true
+                  :width 160
+                  :height 120
+                  ; :fullscreen true
+                  :scale 4
+                  :debug true
+                  :clearColor [0 0 0 1]}])
 
 ;;
-(p/dispatch-n [[:load/root "https://kaboomjs.com/pub/examples/"]
-               [:load/sprite :car "img/car.png"
-                {:sliceX 3
-                 :anims {:move {:from 0
-                                :to 1}
-                         :idle {:from 2
-                                :to 2}}}]
-               [:load/sprite :sky, "img/sky.png"];
-               [:load/sprite :road, "img/road.png"];
-               [:load/sprite :apple, "img/apple.png"];
-               [:load/sprite :pineapple, "img/pineapple.png"]]);
+(dispatch-n [[:load/root "https://kaboomjs.com/pub/examples/"]
+             [:load/sprite :car "img/car.png"
+              {:sliceX 3
+               :anims {:move {:from 0
+                              :to 1}
+                       :idle {:from 2
+                              :to 2}}}]
+             [:load/sprite :sky, "img/sky.png"];
+             [:load/sprite :road, "img/road.png"];
+             [:load/sprite :apple, "img/apple.png"];
+             [:load/sprite :pineapple, "img/pineapple.png"]]);
 
 
 ;; Constants
@@ -96,10 +96,10 @@
  :game/handle-loop
  (fn [_ _]
    (let [comp (rand-nth [:apple :pineapple])]
-     (p/add-component! [[:sprite comp]
-                        [:pos (p/width) (rand-nth (range ubound lbound))]
-                        [:prop :obj]
-                        [:prop comp]]))))
+     (dispatch [:component/add [[:sprite comp]
+                                [:pos (p/width) (rand-nth (range ubound lbound))]
+                                [:prop :obj]
+                                [:prop comp]]]))))
 
 (reg-event
  :obj/handle-lifecycle
@@ -134,7 +134,7 @@
         happiness (p/get-component :ui/happiness)
         score 0]
     ; (.play player "move")
-    [[:comp/play     :player :move]
+    [[:anim/play     :player :move]
      [:key-down
       [:up     #(dispatch [:player/move-up :player])]
       [:down   #(dispatch [:player/move-down :player])]

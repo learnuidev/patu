@@ -4,7 +4,7 @@
    ;; Main Libs (5) ===
    [patu.core :as p]
    [patu.components :as c]                      ;; Component Helpers
-   [patu.events :refer [reg-event dispatch]]))    ;; Event System))
+   [patu.events :refer [reg-event dispatch dispatch-n]]))    ;; Event System))
 
 
 ;; 0 Constants
@@ -15,20 +15,20 @@
 (def ceiling  -60)
 
 ;; 1 Initialize the game
-(p/dispatch [:init {:canvas (js/document.getElementById "app")
-                    :global true
-                    :scale 1
-                    :debug true
-                    :clearColor [0 0 0 1]}])
+(dispatch [:init {:canvas (js/document.getElementById "app")
+                  :global true
+                  :scale 1
+                  :debug true
+                  :clearColor [0 0 0 1]}])
 
 ;; 2 Load Game Assets
-(p/dispatch-n [[:load/root  "https://kaboomjs.com/pub/examples/"];
-               [:load/sprite :sprite/bg, "img/bg.png"];
-               [:load/sprite :sprite/birdy, "img/birdy.png"];
-               [:load/sprite :sprite/pipe, "img/pipe.png"];
-               [:load/sound :sound/score "sounds/score.mp3"]
-               [:load/sound :sound/wooosh "sounds/wooosh.mp3"]
-               [:load/sound :sound/hit "sounds/hit.mp3"]])
+(dispatch-n [[:load/root  "https://kaboomjs.com/pub/examples/"];
+             [:load/sprite :sprite/bg, "img/bg.png"];
+             [:load/sprite :sprite/birdy, "img/birdy.png"];
+             [:load/sprite :sprite/pipe, "img/pipe.png"];
+             [:load/sound :sound/score "sounds/score.mp3"]
+             [:load/sound :sound/wooosh "sounds/wooosh.mp3"]
+             [:load/sound :sound/hit "sounds/hit.mp3"]])
 
 ;; 3 Write dem event handlers (re-frame syntax)
 ;; Events ===
@@ -36,17 +36,17 @@
  :game/spawn-pipes
  (fn [_ _]
    (let [h1 (p/randd pipe-min-height (- (p/height) (+ pipe-min-height pipe-open 10)))]
-     (p/dispatch [:component/add-n
-                  [[:sprite :sprite/pipe]
-                   [:origin :botleft]
-                   [:pos [(p/width) h1]]
-                   [:prop :pipe]] ;; "give it tags to easier define behaviors see below"
-                  [[:sprite :sprite/pipe]
-                   [:origin :botleft]
-                   [:scale 1 -1]
-                   [:pos [(p/width) (+ h1 pipe-open 20)]]
-                   [:prop :pipe]
-                   [:prop {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
+     (dispatch [:component/add-n
+                [[:sprite :sprite/pipe]
+                 [:origin :botleft]
+                 [:pos [(p/width) h1]]
+                 [:prop :pipe]] ;; "give it tags to easier define behaviors see below"
+                [[:sprite :sprite/pipe]
+                 [:origin :botleft]
+                 [:scale 1 -1]
+                 [:pos [(p/width) (+ h1 pipe-open 20)]]
+                 [:prop :pipe]
+                 [:prop {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
 
 (defn add-score [score]
   (set! score -value (inc (.-value score)));
@@ -81,7 +81,7 @@
 (reg-event
  :comp/jump
  (fn [_ [_ cid force]]
-   (p/dispatch-n
+   (dispatch-n
     [[:jump cid force]
      [:audio/play :sound/wooosh]])))
 
@@ -130,10 +130,10 @@
   [[:key-press :space #(p/go :scene/main)]])
 
 ;; 4,3 Scene Registration
-(p/dispatch-n
+(dispatch-n
  [[:reg-scene :scene/main main-init main-evt]
   [:reg-scene :scene/lose lose-init lose-evt]])
 
 ;; 5 Start App
 (defn app []
-  (p/dispatch [:start :scene/main]))
+  (dispatch [:start :scene/main]))

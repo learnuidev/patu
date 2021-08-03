@@ -18,6 +18,11 @@
     (handler nil props)
     (js/console.log (str "No event handler registered for: " (nth props 0)))))
 
+;;
+(defn dispatch-n [vals]
+  (doseq [val vals]
+    (dispatch val)))
+
 (defn key-down [id handler]
   (lib/key-down (:game @game-state) id handler))
 

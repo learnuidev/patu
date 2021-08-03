@@ -148,15 +148,12 @@
   (let [handler (fn [state]
                   (dispatch-n (init state))
                   (dispatch-n (evt state)))]
-
     (scene (:game @game-state) id handler)))
 
-;;
-; (reg-event
-;  :reg-scene
-;  (fn [_ [_ id init evt]]
-;    (reg-scene  id {:init init :evt evt})))
-
+(evt/reg-event
+ :reg-scene
+ (fn [_ [_ id init evt]]
+   (reg-scene  id {:init init :evt evt})))
 
 (defmethod dispatch :reg-scene [[_ id init evt]]
   (reg-scene  id {:init init :evt evt}))
@@ -174,6 +171,12 @@
 
 (defmethod dispatch :start [[_ id]]
   (start id))
+;;
+(evt/reg-event
+ :start
+ (fn [_ [_ id]]
+   (start id)))
+
 (defn respawn [comp val]
   (if (number? val)
     (set! comp -pos (vec2 [val val]))
@@ -253,37 +256,96 @@
 (defn get-level [id]
   (get-in @game-state [:game/levels id]))
 
+(evt/reg-event
+ :sprite
+ (fn [_ [_ id opts]]
+   (if opts
+     (sprite (:game @game-state) id opts)
+     (sprite (:game @game-state) id))))
 (defmethod create-component :sprite [game _ [_ id opts]]
   (if opts
     (sprite game id opts)
     (sprite game id)))
 
+;;
+(evt/reg-event
+ :solid
+ (fn [_ [_ id opts]]
+   (solid (:game @game-state))))
+
 (defmethod create-component :solid [game _ _]
   (solid game))
 
+(evt/reg-event
+ :pos
+ (fn [_ [_ x y]]
+   (if (vector? x)
+     (.pos (:game @game-state) (nth x 0) (nth x 1))
+     (.pos (:game @game-state) x y))))
 (defmethod create-component :pos [game _ [_ x y]]
   (if (vector? x)
     (.pos game (nth x 0) (nth x 1))
     (.pos game x y)))
+
+(evt/reg-event
+ :body
+ (fn [_ [_ value]]
+   (if value
+     (.body (:game @game-state) (clj->js value))
+     (.body (:game @game-state)))))
 
 (defmethod create-component :body [game _ [_ value]]
   (if value
     (.body game (clj->js value))
     (.body game)))
 
+;;
+(evt/reg-event
+ :origin
+ (fn [_ [_ id]]
+   (.origin (:game @game-state) (name id))))
 (defmethod create-component :origin [game _ [_ id]]
   (.origin game (name id)))
+
+;;
+(evt/reg-event
+ :text
+ (fn [_ [_ value opts]]
+   (.text  (:game @game-state) value (or opts 16))))
 
 (defmethod create-component :text [game _ [_ value opts]]
   (.text game value (or opts 16)))
 
+;;
+(evt/reg-event
+ :layer
+ (fn [_ [_ value]]
+   (.layer  (:game @game-state) (name value))))
 (defmethod create-component :layer [game _ [_ value]]
   (.layer game (name value)))
 
+;;
+(evt/reg-event
+ :rect
+ (fn [_ [_ value value-b]]
+   (if (vector? value)
+     (.rect (:game @game-state) (nth value 0) (nth value 1))
+     (.rect (:game @game-state) value (or value-b value)))))
 (defmethod create-component :rect [game _ [_ value value-b]]
   (if (vector? value)
     (.rect game (nth value 0) (nth value 1))
     (.rect game value (or value-b value))))
+
+;;
+(evt/reg-event
+ :scale
+ (fn [_  [_ value value2]]
+   (if value2
+     (.scale (:game @game-state) value value2)
+     (.scale (:game @game-state) value))))
+
+;;
+;;
 
 (defmethod create-component :scale [game _ [_ value value2]]
   (if value2
@@ -294,9 +356,23 @@
   (if (keyword? props)
     props
     (clj->js props)))
+;;
+(evt/reg-event
+ :color
+ (fn [_  [_ r g b a]]
+   (.color (:game @game-state) r g b (or a 1))))
+
 (defmethod create-component :color [game _ [_ r g b a]]
   (.color game r g b (or a 1)))
   ;; 0 6 11 11]
+
+;;
+(evt/reg-event
+ :area
+ (fn [_  [_ x1 y1 x2 y2]]
+   (let [game (:game @game-state)]
+     (.area (:game @game-state) (.vec2 game x1 y1) (.vec2 game x2 y2)))))
+
 (defmethod create-component :area [game _ [_ x1 y1 x2 y2]]
   (.area game (.vec2 game x1 y1) (.vec2 game x2 y2)))
 
@@ -378,24 +454,57 @@
 
 (defmethod dispatch :gravity [[_ value]]
   (gravity! value))
+(evt/reg-event
+ :gravity
+ (fn [_ [_ value]]
+   (gravity! value)))
 
 (defmethod dispatch :origin [[_ value]]
   (.origin (:game @game-state) (name value)))
+(evt/reg-event
+ :origin
+ (fn [_ [_ value]]
+   (.origin (:game @game-state) (name value))))
 
 (defmethod dispatch :add-level [[_ main-map mid]]
   (add-level! main-map mid))
+(evt/reg-event
+ :add-level
+ (fn [_ [_ main-map mid]]
+   (add-level! main-map mid)))
 
 (defmethod dispatch :layers [[_ layers main-bg]]
   (set-layers layers main-bg))
 
+(evt/reg-event
+ :layers
+ (fn [_ [_ layers main-bg]]
+   (set-layers layers main-bg)))
+
 (defmethod dispatch :cam/ignore [[_ backgrounds]]
   (cam-ignore! backgrounds))
+;;
+(evt/reg-event
+ :cam/ignore
+ (fn [_ [_ backgrounds]]
+   (cam-ignore! backgrounds)))
 
 (defmethod dispatch :comp/reg [[_ id props]]
   (reg-component id props))
+;;
+(evt/reg-event
+ :comp/reg
+ (fn [_ [_ id props]]
+   (reg-component id props)))
+
 (defmethod dispatch :comp/reg-n [[_ & comps]]
   (doseq [[id props] comps]
     (reg-component id props)))
+(evt/reg-event
+ :comp/reg-n
+ (fn [_ [_ & comps]]
+   (doseq [[id props] comps]
+     (reg-component id props))))
 
 ;; ==== Dispatch Events ====
 (defn action-handler [comp props]
@@ -414,13 +523,20 @@
     (c/on comp key handler)))
 
 ;;
-(defmethod dispatch :evt/comp [[_ [id & args]]]
+(defmethod dispatch :comp [[_ [id & args]]]
   (let [comp (get-component id)]
     (doseq [[method res] args]
       (case method
         :action (action-handler comp res)
         :on     (on-handler comp res)))))
-
+(evt/reg-event
+ :evt/comp
+ (fn [[_ [id & args]]]
+   (let [comp (get-component id)]
+     (doseq [[method res] args]
+       (case method
+         :action (action-handler comp res)
+         :on     (on-handler comp res))))))
 ;; Key Events
 ;;
 (defn data->fn [id data]
@@ -439,11 +555,27 @@
 (defmethod dispatch :key-down [[_ & comps]]
   (if (keyword? (first comps))
     (evt/key-down (first comps) (second comps))
-    (doseq [[dir handler] comps]
-      (if (or (vector? handler)
-              (map? handler))
-        (evt/key-down dir (data->fn dir handler))
-        (evt/key-down dir handler)))))
+    (doseq [comp comps]
+      (let [dir (first comp)
+            handler (second comp)]
+        (if (vector? dir)
+          (doseq [d dir]
+            (evt/key-down dir handler))
+          (if (or (vector? handler)
+                  (map? handler))
+            (evt/key-down dir (data->fn dir handler))
+            (evt/key-down dir handler)))))))
+
+(evt/reg-event
+ :ket-down
+ (fn [[_ & comps]]
+   (if (keyword? (first comps))
+     (evt/key-down (first comps) (second comps))
+     (doseq [[dir handler] comps]
+       (if (or (vector? handler)
+               (map? handler))
+         (evt/key-down dir (data->fn dir handler))
+         (evt/key-down dir handler))))))
 
 (defmethod dispatch :key-press [[_ & handlers]]
   (if (keyword? (first handlers))
@@ -453,37 +585,88 @@
               (map? handler))
         (evt/key-press id (data->fn id handler))
         (evt/key-press id handler)))))
+;;
+(evt/reg-event
+ :key-press
+ (fn [_ [_ & handlers]]
+   (if (keyword? (first handlers))
+     (evt/key-press (first handlers) (second handlers))
+     (doseq [[id handler] handlers]
+       (if (or (vector? handler)
+               (map? handler))
+         (evt/key-press id (data->fn id handler))
+         (evt/key-press id handler))))))
 
 (defmethod dispatch :key-press-rep [[_ id handler]]
   (evt/key-press-rep id handler))
+
+;;
+(evt/reg-event
+ :key-press-rep
+ (fn [_ [_ id handler]]
+   (evt/key-press-rep id handler)))
 
 (defmethod dispatch :key-release [[_ & handlers]]
   (doseq [[id handler] handlers]
     (evt/key-release id handler)))
 
+(evt/reg-event
+ :key-release
+ (fn [[_ & handlers]]
+   (doseq [[id handler] handlers]
+     (evt/key-release id handler))))
+
 ;; Char
 (defmethod dispatch :char-input [[_ handler]]
   (.charInput (:game @game-state) handler))
+(evt/reg-event
+ :char-input
+ (fn [_ [_ handler]]
+   (.charInput (:game @game-state) handler)))
 
 ;; Mouse
 (defmethod dispatch :mouse-down [[_ handler]]
   (.mouseDown (:game @game-state) handler))
+(evt/reg-event
+ :mouse/down
+ (fn [_ [_ handler]]
+   (.mouseDown (:game @game-state) handler)))
 
+(evt/reg-event
+ :mouse/click
+ (fn [_ [_ handler]]
+   (.mouseClick (:game @game-state) handler)))
 (defmethod dispatch :mouse-click [[_ handler]]
   (.mouseClick (:game @game-state) handler))
 
 (defmethod dispatch :mouse-release [[_ handler]]
   (.mouseRelease (:game @game-state) handler))
-
+(evt/reg-event
+ :mouse/release
+ (fn [_ [_ handler]]
+   (.mouseRelease (:game @game-state) handler)))
 ;; Loaders ===
 (defmethod dispatch :load/root [opts]
   (apply l/load-root (rest opts)))
+(evt/reg-event
+ :load/root
+ (fn [_ opts]
+   (apply l/load-root (rest opts))))
 
 (defmethod dispatch :load/sprite [opts]
   (apply l/load-sprite (rest opts)))
+(evt/reg-event
+ :load/sprite
+ (fn [_ opts]
+   (apply l/load-sprite (rest opts))))
 
 (defmethod dispatch :load/sound [opts]
   (apply l/load-sound (rest opts)))
+
+(evt/reg-event
+ :load/sound
+ (fn [_ opts]
+   (apply l/load-sound (rest opts))))
 
 ;; Key Boolean Events
 (defn key-down? [id]
@@ -510,6 +693,19 @@
 ;; Game Events ===
 
 ;; 1. Action
+(evt/reg-event
+ :action
+ (fn [_ [_ & handlers]]
+   (if (keyword? (first handlers))
+     (when-let [comp (get-component (first handlers))]
+       (if (.-action comp)
+         (.action comp (second handlers))
+         (.action (:game @game-state) (name (first handlers)) (second handlers))))
+     (doseq [[id handler] handlers]
+       (when-let [comp (get-component id)]
+         (if (.-action comp)
+           (.action comp handler)))))))
+
 (defmethod dispatch :action [[_ & handlers]]
   (if (keyword? (first handlers))
     (when-let [comp (get-component (first handlers))]
@@ -523,9 +719,31 @@
           (.action (:game @game-state) (name id) handler))))))
 
 ;; 2. Render
+(evt/reg-event
+ :render
+ (fn [_ [_ id handler]]
+   (.render (:game @game-state) (name id) handler)))
+
 (defmethod dispatch :render [[_ id handler]]
   (.render (:game @game-state) (name id) handler))
 ;; 3. Collides
+(evt/reg-event
+ :collides
+ (fn [_ [_ & handlers]]
+   (if (keyword (first (first handlers)))
+     (let [id (first (first handlers))
+           target (second (first handlers))
+           handler (second handlers)]
+       (let [comp (get-component id)]
+         (if (.-collides comp)
+           (.collides comp (name target) handler)
+           (.collides (:game @game-state) (name id) (name target) handler))))
+     (doseq [[[id target] handler] handlers]
+       (let [comp (get-component id)]
+         (if (.-collides comp)
+           (.collides comp (name target) handler)
+           (.collides (:game @game-state) (name id) (name target) handler)))))))
+
 (defmethod dispatch :collides [[_ & handlers]]
   (if (keyword (first (first handlers)))
     (let [id (first (first handlers))
@@ -540,33 +758,85 @@
         (if (.-collides comp)
           (.collides comp (name target) handler)
           (.collides (:game @game-state) (name id) (name target) handler))))))
+
 ;; 4. Overlaps
+(evt/reg-event
+ :overlaps
+ (fn [_ [_ [id target] handler]]
+   (let [comp (get-component id)]
+     (.overlaps comp (name target) handler))))
+
 (defmethod dispatch :overlaps [[_ [id target] handler]]
   (let [comp (get-component id)]
     (.overlaps comp (name target) handler)))
 ;; 5 on
+(evt/reg-event
+ :on
+ (fn [_ [_ [id target] handler]]
+   (let [comp (get-component id)]
+     (.on comp (name target) handler))))
 (defmethod dispatch :on [[_ [id target] handler]]
   (let [comp (or (get-component id) id)]
     (.on comp (name target) #(handler %))))
 
 ;; Waiting Functions
+;;
+;; Waiting Functions
+(evt/reg-event
+ :loop
+ (fn [_ [_ id func]]
+   (.loop (:game @game-state) id func)))
+
 (defmethod dispatch :loop [[_ id func]]
   (.loop (:game @game-state) id func))
+
+;;
+
+(evt/reg-event
+ :wait
+ (fn [_ [_ id func]]
+   (.wait (:game @game-state) id func)))
 
 (defmethod dispatch :wait [[_ id func]]
   (.wait (:game @game-state) id func))
 
 ;; Component Specific ===
 
+;;
+;;
+(evt/reg-event
+ :anim/play
+ (fn [_ [_ id tune]]
+   (let [comp (get-component id)]
+     (.play comp (name tune)))))
 (defmethod dispatch :anim/play [[_ id tune]]
   (let [comp (get-component id)]
     (.play comp (name tune))))
 
+;;
+(evt/reg-event
+ :jump
+ (fn [_ [_ cid force]]
+   (when-let [comp (get-component cid)]
+     (.jump comp force))))
+
 (defmethod dispatch :jump [[_ cid force]]
   (when-let [comp (get-component cid)]
     (.jump comp force)))
+
+(evt/reg-event
+ :component/add
+ (fn  [_ [_ nodes]]
+   (add-component! nodes)))
 (defmethod dispatch :component/add [[_ nodes]]
   (add-component! nodes))
+;;
+(evt/reg-event
+ :component/add-n
+ (fn [_ [_ & nodes-coll]]
+   (doseq [nodes nodes-coll]
+     (add-component! nodes))))
+
 (defmethod dispatch :component/add-n [[_ & nodes-coll]]
   (doseq [nodes nodes-coll]
     (add-component! nodes)))
@@ -590,7 +860,10 @@
 ;; Audio
 (defmethod dispatch :audio/play [[_ id]]
   (a/play id))
-
+(evt/reg-event
+ :audio/play
+ (fn [_ [_ id]]
+   (a/play id)))
 ;; Animation
 (defn play [id anim-id]
   (if (object? id)
@@ -657,6 +930,11 @@
              :clearColor [0,0,0, 0.9]}))
   ([props]
    (swap! game-state assoc :game (kaboom props))))
+
+(evt/reg-event
+ :init
+ (fn [_ args]
+   (apply init (rest args))))
 
 (defmethod dispatch :init [args]
   (apply init (rest args)))
