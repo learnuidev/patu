@@ -337,15 +337,14 @@
    (let [player (get-in @state [:components :player])]
      (set! (.. player -pos -x) (+ (.. player -pos -x) (* -0.3 10)))
      (.flipX (get-comp :player) true)
-     (when (not (or (and (key-down? :s) (key-down? :left))
-                    (and (key-down? :s) (key-down? :right))))
+     (when (not (key-down? [[:s :left] [:s :right]]))
        (play :player :run)))))
 
 (reg-event
  :play/shoot
  (fn []
-   (when (not (or (key-down? [[:s :left] [:s :right]])
-                  (key-down? [[:s :left :a] [:s :right :a]])))
+   (when (not (key-down? {:or [[[:s :left] [:s :right]]
+                               [[:s :left :a] [:s :right :a]]]}))
      (play :player :shoot))))
 ;; Key down events
 (dispatch
