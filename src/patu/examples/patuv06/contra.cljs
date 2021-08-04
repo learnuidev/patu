@@ -228,14 +228,22 @@
                      (if (= :not (nth arg 0))
                        (not (key-down? (nth arg 1)))
                        (key-down? arg))))))
-    (if (map? key)
-      (when-let [orr (:or key)]
-        (some key-down orr))
-      (if (vector? key)
-        (if (vector? (nth key 0))
-          (some key-down? key)
-          (every? key-is-down key))
-        (key-is-down key)))))
+    (if (and (vector? key)
+             (= (nth key 0) :or))
+      (let [args (rest key)]
+        (->> args
+             (some (fn [arg]
+                     (if (= :not (nth arg 0))
+                       (not (key-down? (nth arg 1)))
+                       (key-down? arg))))))
+      (if (map? key)
+        (when-let [orr (:or key)]
+          (some key-down orr))
+        (if (vector? key)
+          (if (vector? (nth key 0))
+            (some key-down? key)
+            (every? key-is-down key))
+          (key-is-down key))))))
 
 (defn key-release [dir data]
   (if (vector? dir)
@@ -351,8 +359,9 @@
 (reg-event
  :play/shoot
  (fn []
-   (when (not (key-down? {:or [[[:s :left] [:s :right]]
-                               [[:s :left :a] [:s :right :a]]]}))
+   (when (not (key-down? [:or
+                          [[:s :left] [:s :right]]
+                          [[:s :left :a] [:s :right :a]]]))
      (play :player :shoot))))
 ;; Key down events
 (dispatch
