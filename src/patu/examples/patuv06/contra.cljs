@@ -220,14 +220,22 @@
   (.keyIsDown (:k @state) (name key)))
 
 (defn key-down? [key]
-  (if (map? key)
-    (when-let [orr (:or key)]
-      (some key-down orr))
-    (if (vector? key)
-      (if (vector? (nth key 0))
-        (some key-down? key)
-        (every? key-is-down key))
-      (key-is-down key))))
+  (if (and (vector? key)
+           (= (nth key 0) :and))
+    (let [args (rest key)]
+      (->> args
+           (every? (fn [arg]
+                     (if (= :not (nth arg 0))
+                       (not (key-down? (nth arg 1)))
+                       (key-down? arg))))))
+    (if (map? key)
+      (when-let [orr (:or key)]
+        (some key-down orr))
+      (if (vector? key)
+        (if (vector? (nth key 0))
+          (some key-down? key)
+          (every? key-is-down key))
+        (key-is-down key)))))
 
 (defn key-release [dir data]
   (if (vector? dir)
@@ -364,10 +372,11 @@
 (dispatch
  [:action
   (fn []
-    (when (and (key-down? [[:s :left]
-                           [:s :right]])
-               (not (key-down? [[:s :right :up]
-                                [:s :left :up]])))
+    (when  (key-down? [:and
+                       [[:s :left] [:s :right]]
+                       [:not
+                        [[:s :right :up]
+                         [:s :left :up]]]])
       (play :player :shoot-run)))])
 
 (dispatch
