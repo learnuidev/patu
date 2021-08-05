@@ -111,10 +111,10 @@
   ([vals]
    (doseq [[id val] vals]
      (load-sprite id val)))
-  ([id val]
-   (.loadSprite (:k @state) (name id) val))
-  ([id val opts]
-   (.loadSprite (:k @state) (name id) val (clj->js opts))));
+  ([id url]
+   (.loadSprite (:k @state) (name id) url))
+  ([id url opts]
+   (.loadSprite (:k @state) (name id) url (clj->js opts))));
 
 (reg-event
  :load/sprite
@@ -122,7 +122,8 @@
    (apply load-sprite (rest opts))))
 
 ;; ===================================  Components ================================
-(defmulti create-component (fn [data] (first data)))
+; (defmulti create-component (fn [data] (first data)))
+(defmulti create-component (fn [props] (nth props 0)))
 
 (defmethod create-component :sprite [[_ id opts]]
   (if opts
@@ -135,9 +136,21 @@
     (if (vector? x)
       (.pos (:k @state) (first x) (second x))
       (.pos (:k @state) x x))))
-(defmethod create-component :scale [[_ v]]
-  (.scale (:k @state) v))
 
+; (defmethod create-component :scale [[_ v]]
+;   (.scale (:k @state) (or v 1)))
+
+;;
+(defmethod create-component :solid []
+  (.solid (:k @state)))
+(defmethod create-component :prop [[_ val]]
+  (clj->js val))
+;;
+(defn create-components [props]
+  (clj->js (for [prop props]
+             (create-component prop))))
+
+;; =============
 (defn reg-comp [id datas]
   (let [comps (for [data datas]
                 (create-component data))]
@@ -296,8 +309,13 @@
          :global true})
 
 ;; Step 2: Load Assets
+;; ==================================== Animation Tutorial ======================
 (dispatch-n
  [[:load/root "assets/contra/"]
+  ; [:load/sprite :tiles "tiles/one.png"
+  ;  {:sliceX 25 :sliceY 25}]
+  [:load/sprite :tiles "tiles/two.png"
+   {:sliceX 13 :sliceY 25}]
   [:load/sprite :character "player/sprite.png"
    {:sliceX 8
     :sliceY 7
@@ -319,8 +337,8 @@
 (dispatch [:comp/reg
            :player
            [[:sprite :character]
-            [:pos [100 100]]
-            [:scale 2]]])
+            [:pos [100 100]]]])
+            ; [:scale 2]]])
 
 (comment
   (play :player :idle)
@@ -397,4 +415,261 @@
 
 (play :player :idle)
 
+;; ===================================== Level Tutorial ==========================
+(defn add-level [map config]
+  (.addLevel (:k @state) (clj->js map) (clj->js config)))
+
+;;
+(defn format-for-level [{:keys [map width height any pos components]}]
+  (let [input {:map map :width width :height height :any any :pos pos}]
+    (-> input
+        (merge (reduce
+                (fn [primes [id & props]]
+                  (assoc primes id (create-components props)))
+                {}
+                components)))))
+
+(reg-event
+ :add/level
+ (fn [_ [_ map config]]
+   (add-level map (format-for-level config))))
+
+;;
+
+
+(def config
+  {:width 16
+   :height 16
+   ; :scale 1
+   :components  [[:+
+                  [:sprite :tiles {:frame 0}]
+                  ; [:solid]
+                  [:prop ::ground]]
+                 [:=
+                  [:sprite :tiles {:frame 1}]]
+                  ; [:solid]]
+                 [:u
+                  [:sprite :tiles {:frame 2}]]
+                  ; [:solid]]
+                 [:o
+                  [:sprite :tiles {:frame 3}]]
+                  ; [:solid]]
+                 [:a
+                  [:sprite :tiles {:frame 4}]]
+                  ; [:solid]]
+                 [:b
+                  [:sprite :tiles {:frame 5}]]
+                  ; [:solid]]
+                 [:c
+                  [:sprite :tiles {:frame 6}]]
+                  ; [:solid]]
+                 [:d
+                  [:sprite :tiles {:frame 7}]]
+                  ; [:solid]]
+                 [:e
+                  [:sprite :tiles {:frame 8}]]
+                  ; [:solid]]
+                 [:p
+                  [:sprite :tiles {:frame 9}]]
+                  ; [:solid]]
+                 [:y
+                  [:sprite :tiles {:frame 10}]]
+                  ; [:solid]]
+                 [:z
+                  [:sprite :tiles {:frame 11}]]
+                  ; [:solid]]
+                 [:x
+                  [:sprite :tiles {:frame 12}]]
+                  ; [:solid]]
+                 [:8
+                  [:sprite :tiles {:frame 13}]]
+                  ; [:solid]]
+                 [:3
+                  [:sprite :tiles {:frame 14}]]]})
+                  ; [:solid]]]})
+  ; (def game-map)
+(comment
+  (format-for-level config))
+; (dispatch [:add/level main-map config])
+
+; (.addLevel (:k @state) (clj->js main-map) (clj->js (format-for-level config)))
+
+;;
+(def main-map
+  ["abcde fghijijijfghijijij klm             "
+   "nopqr stuv wxyz"
+   "/*+-0 12345 678          "
+   "9ABCD EFGHIJKL          "
+   "MNOPQ RSTUVWXY         "
+   "         "
+   "Zàçèîłáćéï               "])
+
+(def conf-one
+  {:width 16
+   :height 16
+   "a" (clj->js [(js/sprite "tiles" (clj->js {:frame 0}))])
+   "b" (clj->js [(js/sprite "tiles" (clj->js {:frame 1}))])
+   "c" (clj->js [(js/sprite "tiles" (clj->js {:frame 2}))])
+   "d" (clj->js [(js/sprite "tiles" (clj->js {:frame 3}))])
+   "e" (clj->js [(js/sprite "tiles" (clj->js {:frame 4}))])
+   "f" (clj->js [(js/sprite "tiles" (clj->js {:frame 5}))])
+   "g" (clj->js [(js/sprite "tiles" (clj->js {:frame 6}))])
+   "h" (clj->js [(js/sprite "tiles" (clj->js {:frame 7}))])
+   "i" (clj->js [(js/sprite "tiles" (clj->js {:frame 8}))])
+   "j" (clj->js [(js/sprite "tiles" (clj->js {:frame 9}))])
+   "k" (clj->js [(js/sprite "tiles" (clj->js {:frame 10}))])
+   "l" (clj->js [(js/sprite "tiles" (clj->js {:frame 11}))])
+   "m" (clj->js [(js/sprite "tiles" (clj->js {:frame 12}))])
+   "n" (clj->js [(js/sprite "tiles" (clj->js {:frame 13}))])
+   "o" (clj->js [(js/sprite "tiles" (clj->js {:frame 14}))])
+   "p" (clj->js [(js/sprite "tiles" (clj->js {:frame 15}))])
+   "q" (clj->js [(js/sprite "tiles" (clj->js {:frame 16}))])
+   "r" (clj->js [(js/sprite "tiles" (clj->js {:frame 17}))])
+   "s" (clj->js [(js/sprite "tiles" (clj->js {:frame 18}))])
+   "t" (clj->js [(js/sprite "tiles" (clj->js {:frame 19}))])
+   "u" (clj->js [(js/sprite "tiles" (clj->js {:frame 20}))])
+   "v" (clj->js [(js/sprite "tiles" (clj->js {:frame 21}))])
+   "w" (clj->js [(js/sprite "tiles" (clj->js {:frame 22}))])
+   "x" (clj->js [(js/sprite "tiles" (clj->js {:frame 23}))])
+   "y" (clj->js [(js/sprite "tiles" (clj->js {:frame 24}))])
+
+   "z" (clj->js [(js/sprite "tiles" (clj->js {:frame 25}))])
+   "/" (clj->js [(js/sprite "tiles" (clj->js {:frame 26}))])
+   "*" (clj->js [(js/sprite "tiles" (clj->js {:frame 27}))])
+   "+" (clj->js [(js/sprite "tiles" (clj->js {:frame 28}))])
+   "-" (clj->js [(js/sprite "tiles" (clj->js {:frame 29}))])
+   "0" (clj->js [(js/sprite "tiles" (clj->js {:frame 30}))])
+   "1" (clj->js [(js/sprite "tiles" (clj->js {:frame 31}))])
+   "2" (clj->js [(js/sprite "tiles" (clj->js {:frame 32}))])
+   "3" (clj->js [(js/sprite "tiles" (clj->js {:frame 33}))])
+   "4" (clj->js [(js/sprite "tiles" (clj->js {:frame 34}))])
+   "5" (clj->js [(js/sprite "tiles" (clj->js {:frame 35}))])
+   "6" (clj->js [(js/sprite "tiles" (clj->js {:frame 36}))])
+   "7" (clj->js [(js/sprite "tiles" (clj->js {:frame 37}))])
+   "8" (clj->js [(js/sprite "tiles" (clj->js {:frame 38}))])
+   "9" (clj->js [(js/sprite "tiles" (clj->js {:frame 39}))])
+   "A" (clj->js [(js/sprite "tiles" (clj->js {:frame 40}))])
+   "B" (clj->js [(js/sprite "tiles" (clj->js {:frame 41}))])
+   "C" (clj->js [(js/sprite "tiles" (clj->js {:frame 42}))])
+   "D" (clj->js [(js/sprite "tiles" (clj->js {:frame 43}))])
+   "E" (clj->js [(js/sprite "tiles" (clj->js {:frame 44}))])
+   "F" (clj->js [(js/sprite "tiles" (clj->js {:frame 45}))])
+   "G" (clj->js [(js/sprite "tiles" (clj->js {:frame 46}))])
+   "H" (clj->js [(js/sprite "tiles" (clj->js {:frame 47}))])
+   "I" (clj->js [(js/sprite "tiles" (clj->js {:frame 48}))])
+   "J" (clj->js [(js/sprite "tiles" (clj->js {:frame 49}))])
+
+   "K" (clj->js [(js/sprite "tiles" (clj->js {:frame 50}))])
+   "L" (clj->js [(js/sprite "tiles" (clj->js {:frame 51}))])
+   "M" (clj->js [(js/sprite "tiles" (clj->js {:frame 52}))])
+   "N" (clj->js [(js/sprite "tiles" (clj->js {:frame 53}))])
+   "O" (clj->js [(js/sprite "tiles" (clj->js {:frame 54}))])
+   "P" (clj->js [(js/sprite "tiles" (clj->js {:frame 55}))])
+   "Q" (clj->js [(js/sprite "tiles" (clj->js {:frame 56}))])
+   "R" (clj->js [(js/sprite "tiles" (clj->js {:frame 57}))])
+   "S" (clj->js [(js/sprite "tiles" (clj->js {:frame 58}))])
+   "T" (clj->js [(js/sprite "tiles" (clj->js {:frame 59}))])
+   "U" (clj->js [(js/sprite "tiles" (clj->js {:frame 60}))])
+   "V" (clj->js [(js/sprite "tiles" (clj->js {:frame 61}))])
+   "W" (clj->js [(js/sprite "tiles" (clj->js {:frame 62}))])
+   "X" (clj->js [(js/sprite "tiles" (clj->js {:frame 63}))])
+   "Y" (clj->js [(js/sprite "tiles" (clj->js {:frame 64}))])
+
+   "Z" (clj->js [(js/sprite "tiles" (clj->js {:frame 65}))])
+
+   "à" (clj->js [(js/sprite "tiles" (clj->js {:frame 75}))])
+   "ç" (clj->js [(js/sprite "tiles" (clj->js {:frame 76}))])
+   "è" (clj->js [(js/sprite "tiles" (clj->js {:frame 77}))])
+   "î" (clj->js [(js/sprite "tiles" (clj->js {:frame 78}))])
+   "ł" (clj->js [(js/sprite "tiles" (clj->js {:frame 79}))])
+
+   "á" (clj->js [(js/sprite "tiles" (clj->js {:frame 100}))])
+   "ć" (clj->js [(js/sprite "tiles" (clj->js {:frame 101}))])
+   "é" (clj->js [(js/sprite "tiles" (clj->js {:frame 102}))])
+   "ï" (clj->js [(js/sprite "tiles" (clj->js {:frame 103}))])})
+(def conf
+  {:width 16
+   :height 16
+   "a" (clj->js [(js/sprite "tiles" (clj->js {:frame 0}))])
+   "b" (clj->js [(js/sprite "tiles" (clj->js {:frame 1}))])
+   "c" (clj->js [(js/sprite "tiles" (clj->js {:frame 2}))])
+   "d" (clj->js [(js/sprite "tiles" (clj->js {:frame 3}))])
+   "e" (clj->js [(js/sprite "tiles" (clj->js {:frame 4}))])
+   "f" (clj->js [(js/sprite "tiles" (clj->js {:frame 5}))])
+   "g" (clj->js [(js/sprite "tiles" (clj->js {:frame 6}))])
+   "h" (clj->js [(js/sprite "tiles" (clj->js {:frame 7}))])
+   "i" (clj->js [(js/sprite "tiles" (clj->js {:frame 8}))])
+   "j" (clj->js [(js/sprite "tiles" (clj->js {:frame 9}))])
+   "k" (clj->js [(js/sprite "tiles" (clj->js {:frame 10}))])
+   "l" (clj->js [(js/sprite "tiles" (clj->js {:frame 11}))])
+   "m" (clj->js [(js/sprite "tiles" (clj->js {:frame 12}))])
+
+   "n" (clj->js [(js/sprite "tiles" (clj->js {:frame 13}))])
+   "o" (clj->js [(js/sprite "tiles" (clj->js {:frame 14}))])
+   "p" (clj->js [(js/sprite "tiles" (clj->js {:frame 15}))])
+   "q" (clj->js [(js/sprite "tiles" (clj->js {:frame 16}))])
+   "r" (clj->js [(js/sprite "tiles" (clj->js {:frame 17}))])
+   "s" (clj->js [(js/sprite "tiles" (clj->js {:frame 18}))])
+   "t" (clj->js [(js/sprite "tiles" (clj->js {:frame 19}))])
+   "u" (clj->js [(js/sprite "tiles" (clj->js {:frame 20}))])
+   "v" (clj->js [(js/sprite "tiles" (clj->js {:frame 21}))])
+   "w" (clj->js [(js/sprite "tiles" (clj->js {:frame 22}))])
+   "x" (clj->js [(js/sprite "tiles" (clj->js {:frame 23}))])
+   "y" (clj->js [(js/sprite "tiles" (clj->js {:frame 24}))])
+   "z" (clj->js [(js/sprite "tiles" (clj->js {:frame 25}))])
+
+   "/" (clj->js [(js/sprite "tiles" (clj->js {:frame 26}))])
+   "*" (clj->js [(js/sprite "tiles" (clj->js {:frame 27}))])
+   "+" (clj->js [(js/sprite "tiles" (clj->js {:frame 28}))])
+   "-" (clj->js [(js/sprite "tiles" (clj->js {:frame 29}))])
+   "0" (clj->js [(js/sprite "tiles" (clj->js {:frame 30}))])
+   "1" (clj->js [(js/sprite "tiles" (clj->js {:frame 31}))])
+   "2" (clj->js [(js/sprite "tiles" (clj->js {:frame 32}))])
+   "3" (clj->js [(js/sprite "tiles" (clj->js {:frame 33}))])
+   "4" (clj->js [(js/sprite "tiles" (clj->js {:frame 34}))])
+   "5" (clj->js [(js/sprite "tiles" (clj->js {:frame 35}))])
+   "6" (clj->js [(js/sprite "tiles" (clj->js {:frame 36}))])
+   "7" (clj->js [(js/sprite "tiles" (clj->js {:frame 37}))])
+   "8" (clj->js [(js/sprite "tiles" (clj->js {:frame 38}))])
+
+   "9" (clj->js [(js/sprite "tiles" (clj->js {:frame 39}))])
+   "A" (clj->js [(js/sprite "tiles" (clj->js {:frame 40}))])
+   "B" (clj->js [(js/sprite "tiles" (clj->js {:frame 41}))])
+   "C" (clj->js [(js/sprite "tiles" (clj->js {:frame 42}))])
+   "D" (clj->js [(js/sprite "tiles" (clj->js {:frame 43}))])
+   "E" (clj->js [(js/sprite "tiles" (clj->js {:frame 44}))])
+   "F" (clj->js [(js/sprite "tiles" (clj->js {:frame 45}))])
+   "G" (clj->js [(js/sprite "tiles" (clj->js {:frame 46}))])
+   "H" (clj->js [(js/sprite "tiles" (clj->js {:frame 47}))])
+   "I" (clj->js [(js/sprite "tiles" (clj->js {:frame 48}))])
+   "J" (clj->js [(js/sprite "tiles" (clj->js {:frame 49}))])
+   "K" (clj->js [(js/sprite "tiles" (clj->js {:frame 50}))])
+   "L" (clj->js [(js/sprite "tiles" (clj->js {:frame 51}))])
+
+   "M" (clj->js [(js/sprite "tiles" (clj->js {:frame 52}))])
+   "N" (clj->js [(js/sprite "tiles" (clj->js {:frame 53}))])
+   "O" (clj->js [(js/sprite "tiles" (clj->js {:frame 54}))])
+   "P" (clj->js [(js/sprite "tiles" (clj->js {:frame 55}))])
+   "Q" (clj->js [(js/sprite "tiles" (clj->js {:frame 56}))])
+   "R" (clj->js [(js/sprite "tiles" (clj->js {:frame 57}))])
+   "S" (clj->js [(js/sprite "tiles" (clj->js {:frame 58}))])
+   "T" (clj->js [(js/sprite "tiles" (clj->js {:frame 59}))])
+   "U" (clj->js [(js/sprite "tiles" (clj->js {:frame 60}))])
+   "V" (clj->js [(js/sprite "tiles" (clj->js {:frame 61}))])
+   "W" (clj->js [(js/sprite "tiles" (clj->js {:frame 62}))])
+   "X" (clj->js [(js/sprite "tiles" (clj->js {:frame 63}))])
+   "Y" (clj->js [(js/sprite "tiles" (clj->js {:frame 64}))])
+
+   "Z" (clj->js [(js/sprite "tiles" (clj->js {:frame 65}))])
+   "à" (clj->js [(js/sprite "tiles" (clj->js {:frame 75}))])
+   "ç" (clj->js [(js/sprite "tiles" (clj->js {:frame 76}))])
+   "è" (clj->js [(js/sprite "tiles" (clj->js {:frame 77}))])
+   "î" (clj->js [(js/sprite "tiles" (clj->js {:frame 78}))])
+   "ł" (clj->js [(js/sprite "tiles" (clj->js {:frame 79}))])
+   "á" (clj->js [(js/sprite "tiles" (clj->js {:frame 100}))])
+   "ć" (clj->js [(js/sprite "tiles" (clj->js {:frame 101}))])
+   "é" (clj->js [(js/sprite "tiles" (clj->js {:frame 102}))])
+   "ï" (clj->js [(js/sprite "tiles" (clj->js {:frame 103}))])})
+
+(.addLevel (:k @state) (clj->js main-map) (clj->js conf))
 (defn app [])
