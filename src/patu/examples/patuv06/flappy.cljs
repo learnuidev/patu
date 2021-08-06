@@ -1,5 +1,5 @@
-(ns patu.examples.patuv06.one
-  (:require ["kaboom/dist/kaboom.cjs" :as  kab]))
+(ns patu.examples.patuv06.flappy)
+  ; (:require ["kaboom/dist/kaboom.cjs" :as  kab]))
 
 (comment)
 ; (js/console.log kaboom!)
@@ -10,11 +10,11 @@
 
 (defn kaboom
   ([]
-   (let [game (kab)]
+   (let [game (js/kaboom)]
      (swap! state assoc :k game)
      game))
   ([opts]
-   (let [game (kab (clj->js opts))]
+   (let [game (js/kaboom (clj->js opts))]
      (swap! state assoc :k game)
      game)))
 
@@ -245,6 +245,6 @@
   [:left {:player {:x -10}}]
   [:right #(dispatch [:player/move-right])]])
 
-; (play :player :punch)
+(play :player :punch)
 
 (defn app [])

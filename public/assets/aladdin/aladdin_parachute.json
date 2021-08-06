@@ -1,0 +1,35 @@
+{ "frames": {
+   "aladdin_parachute 0.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 48, "h": 98 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 98 },
+    "sourceSize": { "w": 48, "h": 98 },
+    "duration": 100
+   },
+   "aladdin_parachute 1.aseprite": {
+    "frame": { "x": 48, "y": 0, "w": 48, "h": 98 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 98 },
+    "sourceSize": { "w": 48, "h": 98 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.2.28",
+  "image": "aladdin_parachute.png",
+  "format": "RGBA8888",
+  "size": { "w": 96, "h": 98 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "parachute", "from": 0, "to": 1, "direction": "forward" }
+  ],
+  "layers": [
+   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

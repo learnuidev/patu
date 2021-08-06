@@ -10,8 +10,9 @@
             [patu.loaders :as l]
             ["kaboom/dist/kaboom.cjs" :as  kaboom05]))
 
+;; Declarations
+(declare play-anims)
 (defmulti dispatch (fn [args] (nth args 0)))
-(defmulti create-component (fn [_ type props] type))
 
 ;; === ***math** ===
 (defn vec2
@@ -252,20 +253,34 @@
 
 ;; Colors
 
+;; Sprites
 
+(def sprites-state (atom {}))
+
+(defn reg-sprite [id sprite meta-info]
+  (swap! sprites-state assoc id (with-meta {:sprite sprite} meta-info)))
+
+(defn get-sprite [id]
+  (get-in @sprites-state [id :sprite]))
+;;
+(comment
+  (set! js/window -anims (get-sprite :idle)))
+(comment
+  (meta (:idle @sprites-state)))
 (defn get-level [id]
   (get-in @game-state [:game/levels id]))
 
 (evt/reg-event
  :sprite
  (fn [_ [_ id opts]]
-   (if opts
-     (sprite (:game @game-state) id opts)
-     (sprite (:game @game-state) id))))
-(defmethod create-component :sprite [game _ [_ id opts]]
-  (if opts
-    (sprite game id opts)
-    (sprite game id)))
+   (let [spr (if opts
+               (sprite (:game @game-state) id opts)
+               (sprite (:game @game-state) id))
+         meta-info  {:opts opts
+                     :created-at (js/Date.)}]
+     (reg-sprite id spr meta-info)
+     (js/console.log spr)
+     spr)))
 
 ;;
 (evt/reg-event
@@ -273,19 +288,12 @@
  (fn [_ [_ id opts]]
    (solid (:game @game-state))))
 
-(defmethod create-component :solid [game _ _]
-  (solid game))
-
 (evt/reg-event
  :pos
  (fn [_ [_ x y]]
    (if (vector? x)
      (.pos (:game @game-state) (nth x 0) (nth x 1))
      (.pos (:game @game-state) x y))))
-(defmethod create-component :pos [game _ [_ x y]]
-  (if (vector? x)
-    (.pos game (nth x 0) (nth x 1))
-    (.pos game x y)))
 
 (evt/reg-event
  :body
@@ -294,18 +302,11 @@
      (.body (:game @game-state) (clj->js value))
      (.body (:game @game-state)))))
 
-(defmethod create-component :body [game _ [_ value]]
-  (if value
-    (.body game (clj->js value))
-    (.body game)))
-
 ;;
 (evt/reg-event
  :origin
  (fn [_ [_ id]]
    (.origin (:game @game-state) (name id))))
-(defmethod create-component :origin [game _ [_ id]]
-  (.origin game (name id)))
 
 ;;
 (evt/reg-event
@@ -313,16 +314,11 @@
  (fn [_ [_ value opts]]
    (.text  (:game @game-state) value (or opts 16))))
 
-(defmethod create-component :text [game _ [_ value opts]]
-  (.text game value (or opts 16)))
-
 ;;
 (evt/reg-event
  :layer
  (fn [_ [_ value]]
    (.layer  (:game @game-state) (name value))))
-(defmethod create-component :layer [game _ [_ value]]
-  (.layer game (name value)))
 
 ;;
 (evt/reg-event
@@ -331,10 +327,6 @@
    (if (vector? value)
      (.rect (:game @game-state) (nth value 0) (nth value 1))
      (.rect (:game @game-state) value (or value-b value)))))
-(defmethod create-component :rect [game _ [_ value value-b]]
-  (if (vector? value)
-    (.rect game (nth value 0) (nth value 1))
-    (.rect game value (or value-b value))))
 
 ;;
 (evt/reg-event
@@ -347,24 +339,16 @@
 ;;
 ;;
 
-(defmethod create-component :scale [game _ [_ value value2]]
-  (if value2
-    (.scale game value value2)
-    (.scale game value)))
 
-(defmethod create-component :prop [_ _ [_ props]]
-  (if (keyword? props)
-    props
-    (clj->js props)))
+(evt/reg-event
+ :props
+ (fn [_ [_ props]]
+   (clj->js props)))
 ;;
 (evt/reg-event
  :color
  (fn [_  [_ r g b a]]
-   (.color (:game @game-state) r g b (or a 1))))
-
-(defmethod create-component :color [game _ [_ r g b a]]
-  (.color game r g b (or a 1)))
-  ;; 0 6 11 11]
+   (.color (:game @game-state) r g b (or a 1))));; 0 6 11 11]
 
 ;;
 (evt/reg-event
@@ -373,14 +357,13 @@
    (let [game (:game @game-state)]
      (.area (:game @game-state) (.vec2 game x1 y1) (.vec2 game x2 y2)))))
 
-(defmethod create-component :area [game _ [_ x1 y1 x2 y2]]
-  (.area game (.vec2 game x1 y1) (.vec2 game x2 y2)))
-
 (comment
-  (create-component game :sprite [:sprite :mario]))
+  (evt/dispatch [:sprite :mario]))
 (defn create-components [game props]
   (clj->js (for [prop props]
-             (create-component game (nth prop 0) prop))))
+             ; (create-component game (nth prop 0) prop)
+             (evt/dispatch prop))))
+
 (defn create-components! [props]
   (create-components (:game @game-state) props))
 
@@ -396,22 +379,6 @@
 
 (defn add-component! [props]
   (add-component (:game @game-state) props))
-;;
-
-
-; ;;
-; (def ex [[:= [[:sprite :block]
-;               [:solid]]]
-;          [:$ [[:sprite :coin]]]
-;          [:% [[:sprite :surprise]]]
-;          [:* [[:sprite :surprise]]]
-;          ["}" [[:sprite :surprise]]]
-;          [:- [[:sprite :surprise]]]
-;          ["(" [[:sprite :surprise]]]
-;          [:+ [[:sprite :surprise]]]
-;          [")" [[:sprite :surprise]]]
-;          ["^" [[:sprite :surprise]]]
-;          [:# [[:sprite :surprise]]]])
 
 (defn reg-component [id props]
   (let [comp  (add-component (:game @game-state) props)]
@@ -503,6 +470,7 @@
 (evt/reg-event
  :comp/reg-n
  (fn [_ [_ & comps]]
+   (js/console.log "GETS LOGGED", comps)
    (doseq [[id props] comps]
      (reg-component id props))))
 
@@ -804,11 +772,27 @@
 
 ;;
 ;;
+(def anim-state (atom {}))
+(defn reg-anim [id handler]
+  (swap! anim-state assoc id handler))
+
+;;
 (evt/reg-event
  :anim/play
- (fn [_ [_ id tune]]
-   (let [comp (get-component id)]
-     (.play comp (name tune)))))
+ (fn [_ [_ pid anim-id anim-speed loop?]]
+   (if (vector? anim-id)
+     (play-anims pid anim-id)
+     (if-let [handler (get @anim-state pid)]
+       (let [data (handler nil [pid anim-id anim-speed])]
+         (when (vector? data)
+           (play-anims (nth data 0) (nth data 1))))
+       (when-let [comp (get-component pid)]
+         (.changeSprite comp (name anim-id))
+         (.play comp (name anim-id) (if (boolean? loop?) loop? true))
+         (when anim-speed
+           (set! comp -animSpeed anim-speed)))))))
+          ; (js/console.log "ANIMATION NOT FOUND")))))
+
 (defmethod dispatch :anim/play [[_ id tune]]
   (let [comp (get-component id)]
     (.play comp (name tune))))
@@ -843,7 +827,7 @@
 
 (defn dispatch-n [vals]
   (doseq [val vals]
-    (dispatch val)))
+    (evt/dispatch val)))
 
 ;; Math
 (defn quad! [game [a b c d]]
@@ -880,6 +864,7 @@
 
 (defn change-sprite
   [[id sid aid anim-speed]]
+  (js/console.log id)
   (when (object? id)
     (do (.changeSprite id (name sid))
         (when aid
@@ -891,7 +876,10 @@
     (when-let [comp (get-component id)]
       (.changeSprite comp (name sid))
       (when aid
-        (play id aid)))))
+        (play id aid)
+        (if anim-speed
+          (set! comp -animSpeed anim-speed)
+          (set! comp -animSpeed 0.1))))))
 
 (defn change-sprite-and-destroy
   ([comp sid aid] (change-sprite-and-destroy comp sid aid 0))
@@ -912,7 +900,20 @@
        (do
          (change-sprite [obj sid aid anim-speed])
          (sleep #(play-anims-and-destroy obj (rest anims) (+ timer t))
-                (+ timer t)))))))
+                t))))))
+
+(defn play-anims
+  ([obj anims] (play-anims obj anims 0))
+  ([obj anims timer]
+   (let [anim (first anims)
+         [sid aid t anim-speed] anim]
+     (if (not (seq (rest anims)))
+       (change-sprite [obj sid aid anim-speed])
+       (do
+         (js/console.log anim-speed)
+         (change-sprite [obj sid aid anim-speed])
+         (sleep #(play-anims obj (rest anims) (+ timer t))
+                t))))))
 
 ;;
 ;; ==== Initialization Code
