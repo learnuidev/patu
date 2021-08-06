@@ -7,7 +7,9 @@
    #_[patu.examples.drive :refer [app]]
    #_[patu.examples.metro.core :refer [app]]
    #_[patu.examples.patuv06.flappy :refer [app]]
-   [patu.examples.patuv06.contra :refer [app]]))
+   #_[patu.examples.patuv06.contra :refer [app]]
+   #_[patu.examples.patuv06.aladdin :refer [app]]
+   [patu.examples.aladdin :refer [app]]))
 
 (defn ^:dev/after-load start []
   (app))
