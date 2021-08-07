@@ -98,13 +98,6 @@
 (defn screenshot
   [] (.screenShot (:game @game-state)))
 
-(defn sprite
-  ([game title] (.sprite game (name title)))
-  ([game title opts] (.sprite game (name title) (clj->js opts))))
-
-(defn sprite! [title]
-  (sprite (:game @game-state) title))
-
 (defn solid [game]
   (.solid game))
 
@@ -269,6 +262,14 @@
   (meta (:idle @sprites-state)))
 (defn get-level [id]
   (get-in @game-state [:game/levels id]))
+
+;;
+(defn sprite
+  ([game title] (.sprite game (name title)))
+  ([game title opts] (.sprite game (name title) (clj->js opts))))
+
+(defn sprite! [title]
+  (sprite (:game @game-state) title))
 
 (evt/reg-event
  :sprite
@@ -535,8 +536,8 @@
             (evt/key-down dir handler)))))))
 
 (evt/reg-event
- :ket-down
- (fn [[_ & comps]]
+ :key-down
+ (fn [_ [_ & comps]]
    (if (keyword? (first comps))
      (evt/key-down (first comps) (second comps))
      (doseq [[dir handler] comps]
@@ -625,8 +626,11 @@
   (apply l/load-sprite (rest opts)))
 (evt/reg-event
  :load/sprite
- (fn [_ opts]
-   (apply l/load-sprite (rest opts))))
+ (fn [_ [_ & opts]]
+   (if (vector? (first opts))
+     (doseq [opt opts]
+       (apply l/load-sprite opt)))
+   (apply l/load-sprite (first opts))))
 
 (defmethod dispatch :load/sound [opts]
   (apply l/load-sound (rest opts)))

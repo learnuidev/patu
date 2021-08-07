@@ -60,11 +60,11 @@
                  [:%
                   [:sprite :sprite/surprise]
                   [:solid]
-                  [:prop :coin-surprise]]
+                  [:props :coin-surprise]]
                  [:*
                   [:sprite :sprite/surprise]
                   [:solid]
-                  [:prop :mushroom-surprise]]
+                  [:props :mushroom-surprise]]
                  ["}"
                   [:sprite :sprite/unboxed]
                   [:solid]]
@@ -87,8 +87,8 @@
                  ["^"
                   [:sprite :sprite/evil-mushroom]
                   [:solid]
-                  [:prop :evil-mushroom]]
+                  [:props :evil-mushroom]]
                  [:#
                   [:sprite :sprite/mushroom]
                   [:solid]
-                  [:prop :mushroom-surprise]]]})
+                  [:props :mushroom-surprise]]]})
