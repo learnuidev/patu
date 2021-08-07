@@ -9,8 +9,8 @@
    #_[patu.examples.patuv06.flappy :refer [app]]
    #_[patu.examples.patuv06.contra :refer [app]]
    #_[patu.examples.patuv06.aladdin :refer [app]]
-   [patu.examples.aladdin :refer [app]]))
-
+   #_[patu.examples.aladdin :refer [app]]
+   [patu.examples.patuv06.text :refer [app]]))
 (defn ^:dev/after-load start []
   (app))
 
