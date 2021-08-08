@@ -12,7 +12,6 @@
 
 ;; Declarations
 (declare play-anims)
-(defmulti dispatch (fn [args] (nth args 0)))
 
 ;; === ***math** ===
 (defn vec2
@@ -77,10 +76,6 @@
   (js-get #js {:foo "bar"} :foo "Not found")
   (js-get #js {:foo "bar"} :dne "Not found"))
 
-(declare dispatch-n)
-;;
-
-
 ;; Query =
 (defn dt []
   (.dt (:game @game-state)))
@@ -100,9 +95,6 @@
 
 (defn solid [game]
   (.solid game))
-
-(defn solid! []
-  (solid (:game @game-state)))
 
 (defn scale [game value]
   (.scale game value))
@@ -140,17 +132,14 @@
   "Registers a scene"
   [id {:keys [init evt]}]
   (let [handler (fn [state]
-                  (dispatch-n (init state))
-                  (dispatch-n (evt state)))]
+                  (evt/dispatch-n (init state))
+                  (evt/dispatch-n (evt state)))]
     (scene (:game @game-state) id handler)))
 
 (evt/reg-event
  :reg-scene
  (fn [_ [_ id init evt]]
    (reg-scene  id {:init init :evt evt})))
-
-(defmethod dispatch :reg-scene [[_ id init evt]]
-  (reg-scene  id {:init init :evt evt}))
 
 (defn start! [game scene-id]
   (.start game (name scene-id)))
@@ -163,8 +152,6 @@
     (.start (:game @game-state) (name id))
     (.go (:game @game-state) (name id))))
 
-(defmethod dispatch :start [[_ id]]
-  (start id))
 ;;
 (evt/reg-event
  :start
@@ -412,66 +399,44 @@
 (defn reg-level! [id handler]
   (swap! game-state assoc-in [:levels id] handler))
 
-;;
 (defn reg-level [id data-handler]
   (reg-level! id
               (fn [game]
                 (format-for-level game (data-handler)))))
 
-;;
-
-(defmethod dispatch :gravity [[_ value]]
-  (gravity! value))
 (evt/reg-event
  :gravity
  (fn [_ [_ value]]
    (gravity! value)))
 
-(defmethod dispatch :origin [[_ value]]
-  (.origin (:game @game-state) (name value)))
 (evt/reg-event
  :origin
  (fn [_ [_ value]]
    (.origin (:game @game-state) (name value))))
 
-(defmethod dispatch :add-level [[_ main-map mid]]
-  (add-level! main-map mid))
 (evt/reg-event
  :add-level
  (fn [_ [_ main-map mid]]
    (add-level! main-map mid)))
-
-(defmethod dispatch :layers [[_ layers main-bg]]
-  (set-layers layers main-bg))
 
 (evt/reg-event
  :layers
  (fn [_ [_ layers main-bg]]
    (set-layers layers main-bg)))
 
-(defmethod dispatch :cam/ignore [[_ backgrounds]]
-  (cam-ignore! backgrounds))
 ;;
 (evt/reg-event
  :cam/ignore
  (fn [_ [_ backgrounds]]
    (cam-ignore! backgrounds)))
 
-(defmethod dispatch :comp/reg [[_ id props]]
-  (reg-component id props))
 ;;
-
 (evt/reg-event
  :comp/reg
  (fn [_ [_ id props]]
    (if (keyword? id)
      (reg-component id props)
      (add-component! id))))
-
-(defmethod dispatch :comp/reg-n [[_ & comps]]
-  (doseq [[id props] comps]
-    (reg-component id props)))
-
 ;;
 (evt/reg-event
  :comp/reg-n
@@ -498,14 +463,8 @@
     (c/on comp key handler)))
 
 ;;
-(defmethod dispatch :comp [[_ [id & args]]]
-  (let [comp (get-component id)]
-    (doseq [[method res] args]
-      (case method
-        :action (action-handler comp res)
-        :on     (on-handler comp res)))))
 (evt/reg-event
- :evt/comp
+ :comp
  (fn [[_ [id & args]]]
    (let [comp (get-component id)]
      (doseq [[method res] args]
@@ -519,7 +478,7 @@
   (fn []
     (doseq [[cid props] data]
       (if (= :dispatch cid)
-        (dispatch props)
+        (evt/dispatch props)
         (when-let [comp (get-component cid)]
           (doseq [[k v] props]
             (when (= k :x)
@@ -527,19 +486,19 @@
             (when (= k :y)
               (set! (.. comp -pos -y) (+ (.. comp -pos -y) v)))))))))
 
-(defmethod dispatch :key-down [[_ & comps]]
-  (if (keyword? (first comps))
-    (evt/key-down (first comps) (second comps))
-    (doseq [comp comps]
-      (let [dir (first comp)
-            handler (second comp)]
-        (if (vector? dir)
-          (doseq [d dir]
-            (evt/key-down dir handler))
-          (if (or (vector? handler)
-                  (map? handler))
-            (evt/key-down dir (data->fn dir handler))
-            (evt/key-down dir handler)))))))
+; (defmethod dispatch :key-down [[_ & comps]]
+;   (if (keyword? (first comps))
+;     (evt/key-down (first comps) (second comps))
+;     (doseq [comp comps]
+;       (let [dir (first comp)
+;             handler (second comp)]
+;         (if (vector? dir)
+;           (doseq [d dir]
+;             (evt/key-down dir handler))
+;           (if (or (vector? handler)
+;                   (map? handler))
+;             (evt/key-down dir (data->fn dir handler))
+;             (evt/key-down dir handler)))))))
 
 (evt/reg-event
  :key-down
@@ -552,14 +511,6 @@
          (evt/key-down dir (data->fn dir handler))
          (evt/key-down dir handler))))))
 
-(defmethod dispatch :key-press [[_ & handlers]]
-  (if (keyword? (first handlers))
-    (evt/key-press (first handlers) (second handlers))
-    (doseq [[id handler] handlers]
-      (if (or (vector? handler)
-              (map? handler))
-        (evt/key-press id (data->fn id handler))
-        (evt/key-press id handler)))))
 ;;
 (evt/reg-event
  :key-press
@@ -572,38 +523,25 @@
          (evt/key-press id (data->fn id handler))
          (evt/key-press id handler))))))
 
-(defmethod dispatch :key-press-rep [[_ id handler]]
-  (evt/key-press-rep id handler))
-
 ;;
 (evt/reg-event
  :key-press-rep
  (fn [_ [_ id handler]]
    (evt/key-press-rep id handler)))
 
-(defmethod dispatch :key-release [[_ & handlers]]
-  (doseq [[id handler] handlers]
-    (evt/key-release id handler)))
-
 (evt/reg-event
  :key-release
  (fn [_ [_ & handlers]]
-   (js/console.log "HELLO" handlers)
    (doseq [[id handler] handlers]
-     (js/console.log "LOGGGED")
      (evt/key-release id handler))))
 
 ;; Char
-(defmethod dispatch :char-input [[_ handler]]
-  (.charInput (:game @game-state) handler))
 (evt/reg-event
  :char-input
  (fn [_ [_ handler]]
    (.charInput (:game @game-state) handler)))
 
 ;; Mouse
-(defmethod dispatch :mouse-down [[_ handler]]
-  (.mouseDown (:game @game-state) handler))
 (evt/reg-event
  :mouse/down
  (fn [_ [_ handler]]
@@ -613,25 +551,17 @@
  :mouse/click
  (fn [_ [_ handler]]
    (.mouseClick (:game @game-state) handler)))
-(defmethod dispatch :mouse-click [[_ handler]]
-  (.mouseClick (:game @game-state) handler))
 
-(defmethod dispatch :mouse-release [[_ handler]]
-  (.mouseRelease (:game @game-state) handler))
 (evt/reg-event
  :mouse/release
  (fn [_ [_ handler]]
    (.mouseRelease (:game @game-state) handler)))
 ;; Loaders ===
-(defmethod dispatch :load/root [opts]
-  (apply l/load-root (rest opts)))
 (evt/reg-event
  :load/root
  (fn [_ opts]
    (apply l/load-root (rest opts))))
 
-(defmethod dispatch :load/sprite [opts]
-  (apply l/load-sprite (rest opts)))
 (evt/reg-event
  :load/sprite
  (fn [_ [_ & opts]]
@@ -639,9 +569,6 @@
      (doseq [opt opts]
        (apply l/load-sprite opt)))
    (apply l/load-sprite (first opts))))
-
-(defmethod dispatch :load/sound [opts]
-  (apply l/load-sound (rest opts)))
 
 (evt/reg-event
  :load/sound
@@ -690,26 +617,12 @@
            (.action comp handler)
            (.action (:game @game-state) (name id) handler)))))))
 
-(defmethod dispatch :action [[_ & handlers]]
-  (if (keyword? (first handlers))
-    (when-let [comp (get-component (first handlers))]
-      (if (.-action comp)
-        (.action comp (second handlers))
-        (.action (:game @game-state) (name (first handlers)) (second handlers))))
-    (doseq [[id handler] handlers]
-      (when-let [comp (get-component id)]
-        (if (.-action comp)
-          (.action comp handler)
-          (.action (:game @game-state) (name id) handler))))))
-
 ;; 2. Render
 (evt/reg-event
  :render
  (fn [_ [_ id handler]]
    (.render (:game @game-state) (name id) handler)))
 
-(defmethod dispatch :render [[_ id handler]]
-  (.render (:game @game-state) (name id) handler))
 ;; 3. Collides
 (evt/reg-event
  :collides
@@ -728,21 +641,6 @@
            (.collides comp (name target) handler)
            (.collides (:game @game-state) (name id) (name target) handler)))))))
 
-(defmethod dispatch :collides [[_ & handlers]]
-  (if (keyword (first (first handlers)))
-    (let [id (first (first handlers))
-          target (second (first handlers))
-          handler (second handlers)]
-      (let [comp (get-component id)]
-        (if (.-collides comp)
-          (.collides comp (name target) handler)
-          (.collides (:game @game-state) (name id) (name target) handler))))
-    (doseq [[[id target] handler] handlers]
-      (let [comp (get-component id)]
-        (if (.-collides comp)
-          (.collides comp (name target) handler)
-          (.collides (:game @game-state) (name id) (name target) handler))))))
-
 ;; 4. Overlaps
 (evt/reg-event
  :overlaps
@@ -750,18 +648,12 @@
    (let [comp (get-component id)]
      (.overlaps comp (name target) handler))))
 
-(defmethod dispatch :overlaps [[_ [id target] handler]]
-  (let [comp (get-component id)]
-    (.overlaps comp (name target) handler)))
 ;; 5 on
 (evt/reg-event
  :on
  (fn [_ [_ [id target] handler]]
    (let [comp (get-component id)]
      (.on comp (name target) handler))))
-(defmethod dispatch :on [[_ [id target] handler]]
-  (let [comp (or (get-component id) id)]
-    (.on comp (name target) #(handler %))))
 
 ;; Waiting Functions
 ;;
@@ -771,23 +663,12 @@
  (fn [_ [_ id func]]
    (.loop (:game @game-state) id func)))
 
-(defmethod dispatch :loop [[_ id func]]
-  (.loop (:game @game-state) id func))
-
-;;
-
 (evt/reg-event
  :wait
  (fn [_ [_ id func]]
    (.wait (:game @game-state) id func)))
 
-(defmethod dispatch :wait [[_ id func]]
-  (.wait (:game @game-state) id func))
-
 ;; Component Specific ===
-
-;;
-;;
 (def anim-state (atom {}))
 (defn reg-anim [id handler]
   (swap! anim-state assoc id handler))
@@ -809,20 +690,11 @@
            (set! comp -animSpeed anim-speed)))))))
           ; (js/console.log "ANIMATION NOT FOUND")))))
 
-(defmethod dispatch :anim/play [[_ id tune]]
-  (let [comp (get-component id)]
-    (.play comp (name tune))))
-
-;;
 (evt/reg-event
  :jump
  (fn [_ [_ cid force]]
    (when-let [comp (get-component cid)]
      (.jump comp force))))
-
-(defmethod dispatch :jump [[_ cid force]]
-  (when-let [comp (get-component cid)]
-    (.jump comp force)))
 
 (defn dispatch-n [vals]
   (doseq [val vals]
@@ -841,8 +713,6 @@
   ((obj/get (get-component id) (name prop))))
 
 ;; Audio
-(defmethod dispatch :audio/play [[_ id]]
-  (a/play id))
 (evt/reg-event
  :audio/play
  (fn [_ [_ id]]
@@ -929,7 +799,6 @@
                 [layer #(move-bg % (* -90 speed))])]
      (evt/dispatch (into [] (conj vals :action))))))
 
-;;
 ;; ==== Initialization Code
 (defn kaboom [config]
   (kaboom05 (clj->js config)))
@@ -950,6 +819,3 @@
  :init
  (fn [_ args]
    (apply init (rest args))))
-
-(defmethod dispatch :init [args]
-  (apply init (rest args)))
