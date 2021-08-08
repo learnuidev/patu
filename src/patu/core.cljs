@@ -98,13 +98,6 @@
 (defn screenshot
   [] (.screenShot (:game @game-state)))
 
-(defn sprite
-  ([game title] (.sprite game (name title)))
-  ([game title opts] (.sprite game (name title) (clj->js opts))))
-
-(defn sprite! [title]
-  (sprite (:game @game-state) title))
-
 (defn solid [game]
   (.solid game))
 
@@ -270,6 +263,14 @@
 (defn get-level [id]
   (get-in @game-state [:game/levels id]))
 
+;;
+(defn sprite
+  ([game title] (.sprite game (name title)))
+  ([game title opts] (.sprite game (name title) (clj->js opts))))
+
+(defn sprite! [title]
+  (sprite (:game @game-state) title))
+
 (evt/reg-event
  :sprite
  (fn [_ [_ id opts]]
@@ -279,7 +280,7 @@
          meta-info  {:opts opts
                      :created-at (js/Date.)}]
      (reg-sprite id spr meta-info)
-     (js/console.log spr)
+     ; (js/console.log spr)
      spr)))
 
 ;;
@@ -459,20 +460,26 @@
 (defmethod dispatch :comp/reg [[_ id props]]
   (reg-component id props))
 ;;
+
 (evt/reg-event
  :comp/reg
  (fn [_ [_ id props]]
-   (reg-component id props)))
+   (if (keyword? id)
+     (reg-component id props)
+     (add-component! id))))
 
 (defmethod dispatch :comp/reg-n [[_ & comps]]
   (doseq [[id props] comps]
     (reg-component id props)))
+
+;;
 (evt/reg-event
  :comp/reg-n
- (fn [_ [_ & comps]]
-   (js/console.log "GETS LOGGED", comps)
-   (doseq [[id props] comps]
-     (reg-component id props))))
+ (fn [_ [_ & nodes-coll]]
+   (doseq [nodes nodes-coll]
+     (if (keyword? (first nodes))
+       (reg-component (first nodes) (second nodes))
+       (add-component! nodes)))))
 
 ;; ==== Dispatch Events ====
 (defn action-handler [comp props]
@@ -508,7 +515,7 @@
 ;; Key Events
 ;;
 (defn data->fn [id data]
-  (js/console.log "DATA" data)
+  ; (js/console.log "DATA" data)
   (fn []
     (doseq [[cid props] data]
       (if (= :dispatch cid)
@@ -535,8 +542,8 @@
             (evt/key-down dir handler)))))))
 
 (evt/reg-event
- :ket-down
- (fn [[_ & comps]]
+ :key-down
+ (fn [_ [_ & comps]]
    (if (keyword? (first comps))
      (evt/key-down (first comps) (second comps))
      (doseq [[dir handler] comps]
@@ -580,8 +587,10 @@
 
 (evt/reg-event
  :key-release
- (fn [[_ & handlers]]
+ (fn [_ [_ & handlers]]
+   (js/console.log "HELLO" handlers)
    (doseq [[id handler] handlers]
+     (js/console.log "LOGGGED")
      (evt/key-release id handler))))
 
 ;; Char
@@ -625,8 +634,11 @@
   (apply l/load-sprite (rest opts)))
 (evt/reg-event
  :load/sprite
- (fn [_ opts]
-   (apply l/load-sprite (rest opts))))
+ (fn [_ [_ & opts]]
+   (if (vector? (first opts))
+     (doseq [opt opts]
+       (apply l/load-sprite opt)))
+   (apply l/load-sprite (first opts))))
 
 (defmethod dispatch :load/sound [opts]
   (apply l/load-sound (rest opts)))
@@ -661,9 +673,12 @@
 ;; Game Events ===
 
 ;; 1. Action
+(comment
+  (.-action (get-component :bg1)))
 (evt/reg-event
  :action
  (fn [_ [_ & handlers]]
+   ; (println "HANDLERS" (first handlers))
    (if (keyword? (first handlers))
      (when-let [comp (get-component (first handlers))]
        (if (.-action comp)
@@ -672,7 +687,8 @@
      (doseq [[id handler] handlers]
        (when-let [comp (get-component id)]
          (if (.-action comp)
-           (.action comp handler)))))))
+           (.action comp handler)
+           (.action (:game @game-state) (name id) handler)))))))
 
 (defmethod dispatch :action [[_ & handlers]]
   (if (keyword? (first handlers))
@@ -808,23 +824,6 @@
   (when-let [comp (get-component cid)]
     (.jump comp force)))
 
-(evt/reg-event
- :component/add
- (fn  [_ [_ nodes]]
-   (add-component! nodes)))
-(defmethod dispatch :component/add [[_ nodes]]
-  (add-component! nodes))
-;;
-(evt/reg-event
- :component/add-n
- (fn [_ [_ & nodes-coll]]
-   (doseq [nodes nodes-coll]
-     (add-component! nodes))))
-
-(defmethod dispatch :component/add-n [[_ & nodes-coll]]
-  (doseq [nodes nodes-coll]
-    (add-component! nodes)))
-
 (defn dispatch-n [vals]
   (doseq [val vals]
     (evt/dispatch val)))
@@ -864,7 +863,7 @@
 
 (defn change-sprite
   [[id sid aid anim-speed]]
-  (js/console.log id)
+  ; (js/console.log id)
   (when (object? id)
     (do (.changeSprite id (name sid))
         (when aid
@@ -910,10 +909,25 @@
      (if (not (seq (rest anims)))
        (change-sprite [obj sid aid anim-speed])
        (do
-         (js/console.log anim-speed)
+         ; (js/console.log anim-speed)
          (change-sprite [obj sid aid anim-speed])
          (sleep #(play-anims obj (rest anims) (+ timer t))
                 t))))))
+
+;; ======== Parallax
+(defn move-bg [bg factor]
+  (when  (key-down? :right)
+    (.move bg factor 0)
+    (when (<= (.. bg -pos -x)
+              (* -1 (width) 2))
+      (set! (.. bg -pos) -x (+ (.. bg -pos -x) (* (width) 4))))))
+
+(evt/reg-event
+ :parallax
+ (fn [_ [_ layers]]
+   (let [vals (for [[layer speed] layers]
+                [layer #(move-bg % (* -90 speed))])]
+     (evt/dispatch (into [] (conj vals :action))))))
 
 ;;
 ;; ==== Initialization Code

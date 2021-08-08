@@ -73,11 +73,11 @@
               [:pos 160 0]
               [:body]
               [:origin :botright]
-              [:prop (biggify-player)]]]
+              [:props (biggify-player)]]]
     [:score [[:text 100]
              [:pos 16 16]
              [:layer :ui]
-             [:prop {:value "You lose"}]]]]])
+             [:props {:value "You lose"}]]]]])
 
 (reg-event
  :player/change-sprite

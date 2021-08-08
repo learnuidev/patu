@@ -17,15 +17,17 @@
 ;; 1 Initialize the game
 (dispatch [:init {:canvas (js/document.getElementById "app")
                   :global true
-                  :scale 1
+                  :scale 3
                   :debug true
+                  :fullscreen true
                   :clearColor [0 0 0 1]}])
 
 ;; 2 Load Game Assets
 (dispatch-n [[:load/root  "https://kaboomjs.com/pub/examples/"];
-             [:load/sprite :sprite/bg, "img/bg.png"];
-             [:load/sprite :sprite/birdy, "img/birdy.png"];
-             [:load/sprite :sprite/pipe, "img/pipe.png"];
+             [:load/sprite
+              [:sprite/bg, "img/bg.png"];
+              [:sprite/birdy, "img/birdy.png"];
+              [:sprite/pipe, "img/pipe.png"]];
              [:load/sound :sound/score "sounds/score.mp3"]
              [:load/sound :sound/wooosh "sounds/wooosh.mp3"]
              [:load/sound :sound/hit "sounds/hit.mp3"]])
@@ -36,20 +38,20 @@
  :game/spawn-pipes
  (fn [_ _]
    (let [h1 (p/randd pipe-min-height (- (p/height) (+ pipe-min-height pipe-open 10)))]
-     (dispatch [:component/add-n
+     (dispatch [:comp/reg-n
                 [[:sprite :sprite/pipe]
                  [:origin :botleft]
                  [:pos [(p/width) h1]]
-                 [:prop :pipe]] ;; "give it tags to easier define behaviors see below"
+                 [:props :pipe]] ;; "give it tags to easier define behaviors see below"
                 [[:sprite :sprite/pipe]
                  [:origin :botleft]
                  [:scale 1 -1]
                  [:pos [(p/width) (+ h1 pipe-open 20)]]
-                 [:prop :pipe]
-                 [:prop {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
+                 [:props :pipe]
+                 [:props {:passed false}]]])))) ;; "raw table just assigns every field to the game obj"
 
 (defn add-score [score]
-  (set! score -value (inc (.-value score)));
+  (set! score -value (inc (js/parseInt (.-value score))));
   (set! score -text (.-value score)));
 
 (reg-event
@@ -95,15 +97,15 @@
                 [:scale (/ (p/width) 240) (/ (p/height) 240)]
                 [:layer :bg]]]
     [:player [[:sprite :sprite/birdy]
-              [:pos 120 0]
+              [:pos  (/ (p/width) 4) 0]
               [:scale 1]
               [:body {:jumpForce 320}]
               [:origin :center]
-              [:prop {:speed 160}]]]
+              [:props {:speed 160}]]]
     [:ui/score [[:text "0" 16]
                 [:pos 9 9]
                 [:layer :ui]
-                [:prop {:value  0}]]]]])
+                [:props {:value  0}]]]]])
 
 ;; 4.2 Scene Event Handler
 (defn main-evt []
@@ -119,10 +121,10 @@
   (let [[x y] (p/center)
         score (p/get-component :ui/score)]
     [[:comp/reg-n
-      [:ui/score-board [[:text (.-value score) 64]
+      [:ui/score-board [[:text (.-value score) 24]
                         [:pos x y]
                         [:origin :center]]]
-      [:ui/score-board [[:text "Press space to restart" 16]
+      [:ui/score-board [[:text "Press space to restart" 8]
                         [:pos x (+ y 50)]
                         [:origin :center]]]]]))
 

@@ -96,10 +96,10 @@
  :game/handle-loop
  (fn [_ _]
    (let [comp (rand-nth [:apple :pineapple])]
-     (dispatch [:component/add [[:sprite comp]
-                                [:pos (p/width) (rand-nth (range ubound lbound))]
-                                [:prop :obj]
-                                [:prop comp]]]))))
+     (dispatch [:comp/reg [[:sprite comp]
+                           [:pos (p/width) (rand-nth (range ubound lbound))]
+                           [:prop :obj]
+                           [:prop comp]]]))))
 
 (reg-event
  :obj/handle-lifecycle
