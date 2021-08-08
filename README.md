@@ -51,7 +51,7 @@ https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-
  :game/spawn-pipes
  (fn [_ _]
    (let [h1 (p/randd pipe-min-height (- (p/height) (+ pipe-min-height pipe-open 10)))]
-     (p/dispatch [:component/add-n
+     (p/dispatch [:comp/reg-n
                   [[:sprite :sprite/pipe]
                    [:origin :botleft]
                    [:pos [(p/width) h1]]

@@ -12,6 +12,7 @@
    #_[patu.examples.aladdin :refer [app]]
    #_[patu.examples.patuv06.text :refer [app]]
    [patu.examples.parallax :refer [app]]))
+
 (defn ^:dev/after-load start []
   (app))
 
