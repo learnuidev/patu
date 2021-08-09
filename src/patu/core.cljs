@@ -466,7 +466,7 @@
 (evt/reg-event
  :comp
  (fn [[_ [id & args]]]
-   (let [comp (get-component id)]
+   (when-let [comp (get-component id)]
      (doseq [[method res] args]
        (case method
          :action (action-handler comp res)
