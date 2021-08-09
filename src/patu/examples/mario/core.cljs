@@ -86,19 +86,21 @@
      (.changeSprite comp (name sid)))))
 
 (defn main-action []
+  [])
+(defn main-action []
   (let [player (p/get-component :player)
         score (p/get-component :score)
         level (p/get-level :level/one)
         pos (.sub (.-pos player) (p/vec2 [-200 (- (.-y (.-pos player)) 30)]))]
     (cam/cam-pos pos)
     (js/console.log "Mario")
-    [[:comp
-      [:player
-       [:on
-        [:headbump
-         [:coin-surprise #(dispatch [:player/change-sprite :player :sprite/coin])]
-         [:mushroom-surprise #(dispatch [:player/change-sprite :player :sprite/coin])]]]]]
-     [:on  [:player :headbump]   #(js/console.log %)]
+    ; [[:comp
+    ;   [:player
+    ;    [:on
+    ;     [:headbump
+    ;      [:coin-surprise #(dispatch [:player/change-sprite :player :sprite/coin])]
+    ;      [:mushroom-surprise #(dispatch [:player/change-sprite :player :sprite/coin])]]]]]]))
+    [[:on  [:player :headbump]   #(js/console.log %)]
      [:key-down
       [:left  #(when (< 110 (.-x (.-pos player)))
                  (c/move! player [-230 0]))]
@@ -112,7 +114,7 @@
       [[:player :evil-mushroom]  #(p/go :scene/lose (js-get score :value))]
       [[:player :evil-mushroom]  #(dispatch [:player/change-sprite :player :sprite/evil-mushroom])]
       [[:player :mushroom-surprise] (fn []
-                                      ; (dispatch [:player/change-sprite :player :sprite/mushroom])
+                       ; (dispatch [:player/change-sprite :player :sprite/mushroom])
                                       (p/call :player :biggify))]]
      [:key-press
       [:b #(p/call :player :biggify)]
