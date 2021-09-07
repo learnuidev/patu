@@ -1,4 +1,4 @@
-(ns patu.plugins
+(ns patu.plugins.aseprite
   (:require
    [clojure.repl :refer [doc]]
    [goog.object :as obj]
