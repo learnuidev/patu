@@ -5,3 +5,4 @@ public/js/
 .clj-kondo
 
 .DS_Store
+.cpcache
