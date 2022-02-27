@@ -6,7 +6,8 @@
     "shadow-cljs": "^2.10.6"
   },
   "scripts": {
-    "start": "npx shadow-cljs watch app"
+    "start": "npx shadow-cljs watch app",
+    "demo": "npx shadow-cljs watch demo"
   },
   "dependencies": {
     "kaboom": "^0.5.1",

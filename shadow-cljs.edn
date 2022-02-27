@@ -1,12 +1,12 @@
-{:source-paths ["src" "resources"]
-
+{:deps {:aliases [:app :dev :demo]}
  :nrepl        {:port 8888}
  :dev-http     {3000 "public"}
-
- :dependencies [[re-frame "1.0.0-rc2"]
-                [reagent "1.0.0-alpha2"]]
-
  :builds       {:app {:target :browser
                       :modules {:main {:init-fn patu.examples.core/init}}
                       :output-dir "public/js"
-                      :asset-path "/js"}}}
+                      :asset-path "/js"}
+                :demo {:compiler-options {:output-feature-set :es8}
+                       :target :browser
+                       :output-dir "public/js"
+                       :asset-path "js"
+                       :modules {:demo {:init-fn learnui.patu.demo.core/init}}}}}
