@@ -8,6 +8,13 @@ Patu is a ClojureScript library for making 2D games. It is built on top of Kaboo
 
 ## Usage
 
+### Include it in your `deps.edn`
+
+```clojure
+{:deps {learnuidev.patu {:git/url "https://github.com/learnuidev/patu"
+                         :sha "d6ba43254d2c927ad203c9bd165806bbafeb083b"}}}
+```
+
 A Flappy bird tutorial
 
 https://user-images.githubusercontent.com/67298065/126885020-d021be8a-1746-4428-aea7-14982c805137.mov
