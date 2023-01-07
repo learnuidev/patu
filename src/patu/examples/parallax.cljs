@@ -184,3 +184,6 @@
 (defn app []
   (p/start :scene/main)
   (js/console.log "hello patu"))
+
+
+(+ 1 3)
